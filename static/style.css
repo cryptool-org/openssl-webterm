@@ -1,0 +1,35 @@
+body {
+    background: #222 !important;
+    /* color: white !important; */
+    overflow-y: scroll;
+}
+
+/* .container {
+    max-width: 95% !important;
+} */
+
+.loading {
+    position: absolute;
+    left: 0; right: 0;
+    top: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: #fff;
+}
+
+
+/* CommandLine.css */
+
+.xterm.terminal {
+    padding: 1rem;
+}
+
+
+/* GuiControls.css */
+
+.table td, .table th {
+    vertical-align: middle !important;
+}
