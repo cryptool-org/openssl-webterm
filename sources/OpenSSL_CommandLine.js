@@ -7,15 +7,12 @@ import OpenSSLGUI from "./openssl-gui/OpenSSL_GUI"
 
 class CommandLine extends React.Component {
 
-    xtermRef
     emscrWasmTerm
 
     constructor(props) {
         super(props)
 
         window.commandLine = this // todo: debug
-
-        this.xtermRef = React.createRef()
 
         // init emscripten wasm xterm addon
         this.emscrWasmTerm = new EmscrWasmTerm(baseUrl + "bin", baseUrl + "bin")
@@ -116,7 +113,7 @@ class CommandLine extends React.Component {
             <div>
 
                 <div style={{position: "relative"}}>
-                    <XTerm ref={this.xtermRef} addons={[this.emscrWasmTerm]}
+                    <XTerm addons={[this.emscrWasmTerm]}
                         options={{ fontSize: 15, fontFamily: "monospace" }} />
 
                     { this.state.loading && <div className="loading">
@@ -125,7 +122,6 @@ class CommandLine extends React.Component {
                     </div> }
                 </div>
 
-                <hr className="my-4 bg-dark" />
                 <OpenSSLGUI files={this.state.files} setFiles={files => this.setFiles(files)}
                     runCommand={line => this.runCommandFromOpenSSLGUI(line)} cipherList={this.state.openSSL.cipherList}
                     curvesList={this.state.openSSL.curvesList} hashfunList={this.state.openSSL.hashfunList} />

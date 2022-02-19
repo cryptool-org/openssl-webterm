@@ -1,8 +1,9 @@
 import React from "react"
 import { Button, Card, Col, Form, Row } from "react-bootstrap"
 import CommandField from "../CommandField"
+import Helpers from "../Helpers"
 
-class GenKeyTab extends React.Component {
+class GenKeysTab extends React.Component {
 
     constructor(props) {
         super(props)
@@ -20,10 +21,13 @@ class GenKeyTab extends React.Component {
                 outputfile: "privkey." + this._keyFormats[0].toLowerCase(),
                 keylength: this._numbits[0],
                 elcurvename: "prime256v1", // this.props.curvesList[0]?.name
+                passphrasetype: "text",
+                cipher: "aes-256-cbc"
             },
 
             pubkeyFields: {
                 outputfile: "pubkey." + this._keyFormats[0].toLowerCase(),
+                passphrasetype: "text",
                 keyformat: this._keyFormats[0]
             }
 
@@ -39,20 +43,27 @@ class GenKeyTab extends React.Component {
     render() {
 
         // filter files for needed private key format
-        const privateKeys = (this.state.keytype == "ec")
-            ? this._getEllipticCurvesParamsFilenamesFromFiles()
-            : this._getPrivateKeysFilenamesFromFiles()
+        this.privateKeys = (this.state.keytype == "ec")
+            ? Helpers.getEllipticCurvesParamsFilenamesFromFiles(this.props.files)
+            : Helpers.getPrivateKeysFilenamesFromFiles(this.props.files)
 
         // check if last selected file (inputprivkey) is still available
-        if(this.state.pubkeyFields.inputprivkey != 0 // 0 means "Select file"
-        && !privateKeys.includes(this.state.pubkeyFields.inputprivkey))
+        if(this.state.pubkeyFields.inputprivkey != "" // "" means "Select file"
+        && !this.privateKeys.includes(this.state.pubkeyFields.inputprivkey))
             this.state.pubkeyFields.inputprivkey = undefined
 
-        // set default pubkey input privkey file (on file update)
-        if(this.state.pubkeyFields.inputprivkey == undefined && privateKeys.length > 0)
-            this.state.pubkeyFields.inputprivkey = privateKeys[0]
+        // set default pubkey input privkey file (on files update)
+        if(this.state.pubkeyFields.inputprivkey == undefined && this.privateKeys.length > 0)
+            this.state.pubkeyFields.inputprivkey = this.privateKeys[0]
 
         // todo: maybe make the upper more general? -> update all file selects
+        // note: will also be used in EncryptionTab.js
+
+        // check if selected inputprivkey (for pubkey derivation) is encrypted
+        if(this.state.pubkeyFields.inputprivkey != "") {
+            let inputprivkeyFile = this.props.files.find(file => file.name == this.state.pubkeyFields.inputprivkey)
+            this.isInputprivkeyEncrypted = inputprivkeyFile ? Helpers.isKeyEncrypted(inputprivkeyFile) : undefined
+        } else this.isInputprivkeyEncrypted = undefined
 
         // validate fields and build command for privkey
         const whatsValidPriv = this._validatePrivkeyFields()
@@ -62,10 +73,10 @@ class GenKeyTab extends React.Component {
         const whatsValidPub = this._validatePubkeyFields()
         const pubkeyCommand = this._buildPubkeyCommand(whatsValidPub)
 
-        return <Form onSubmit={e => e.preventDefault()}>
+        return <>
 
             <Form.Group>
-                <Form.Label className="d-inline-block mr-3">Key type:</Form.Label>
+                <Form.Label className="d-inline-block mr-3 mb-0">Key type:</Form.Label>
                 <Form.Check custom inline type="radio" name="keytype" value="rsa"
                     label="RSA" onChange={e => this.onChange(e)} id="genkey-keytype-rsa"
                     checked={this.state.keytype == "rsa"}  />
@@ -74,16 +85,18 @@ class GenKeyTab extends React.Component {
                     checked={this.state.keytype == "ec"} id="genkey-keytype-ec" />
             </Form.Group>
 
+            <Form onSubmit={e => e.preventDefault()}>
+
             <Card className="mt-4">
                 <Card.Header className={"d-flex align-items-center justify-content-between"}>
-                    <b>1) {this.state.keytype != "ec" ? "Private Key Generation" : "EC Param Generation"}</b>
+                    <b>1) Generate {this.state.keytype != "ec" ? "Private Key" : "EC Params"}</b>
                     <Button variant="dark" size="sm" onClick={() => this._resetPrivkeyFields()}>
                         <i className="fa fa-undo"></i> Reset fields
                     </Button>
                 </Card.Header>
                 <Card.Body>
                     <Row>
-                        <Col>
+                        <Col xs={12} md={6}>
 
                             {this.state.keytype == "rsa" &&
                             <Form.Group>
@@ -109,26 +122,68 @@ class GenKeyTab extends React.Component {
                         </Col>
 
                         {this.state.keytype == "rsa" &&
-                        <Col>
+                        <Col xs={12} md={6}>
+
                             <Form.Group>
-                                <Form.Label>Passphrase <small className="text-muted">(leave empty for none)</small></Form.Label>
-                                <Form.Control required type="text" value={this.state.privkeyFields.passphrase || ""}
-                                    name="passphrase" onChange={e => this._onPrivkeyFieldChange(e)}
-                                    isValid={whatsValidPriv.passphrase} isInvalid={this._isInvalid(whatsValidPriv.passphrase)} />
+
+                                <Form.Label className="d-block">
+                                    <Form.Check custom inline type="checkbox" name="encrypt" id="genkey-privkey-encrypt" className="mr-3"
+                                        label="Encrypt (Passphrase):" value={(this.state.privkeyFields.encrypt == "true" ? "false" : "true")}
+                                        onChange={e => this._onPrivkeyFieldChange(e)} checked={this.state.privkeyFields.encrypt == "true"} />
+                                    <Form.Check custom inline type="radio" name="passphrasetype" value="text"
+                                        label="Text" onChange={e => this._onPrivkeyFieldChange(e)} id="genkey-privkey-passphrasetype-text"
+                                        disabled={this.state.privkeyFields.encrypt != "true"}
+                                        checked={this.state.privkeyFields.passphrasetype == "text"} />
+                                    <Form.Check custom inline type="radio" name="passphrasetype" value="file"
+                                        label="File" onChange={e => this._onPrivkeyFieldChange(e)} id="genkey-privkey-passphrasetype-file"
+                                        disabled={this.state.privkeyFields.encrypt != "true"}
+                                        checked={this.state.privkeyFields.passphrasetype == "file"} />
+                                </Form.Label>
+
+                                {this.state.privkeyFields.passphrasetype == "text" &&
+                                <Form.Control type="password" placeholder={(this.state.privkeyFields.encrypt == "true") ? "Enter passphrase .." : ""}
+                                    name="passphrasetext" value={(this.state.privkeyFields.encrypt == "true" ? (this.state.privkeyFields.passphrasetext || "") : "")}
+                                    onChange={e => this._onPrivkeyFieldChange(e)} disabled={this.state.privkeyFields.encrypt != "true"}
+                                    isInvalid={this._isInvalid(whatsValidPriv.passphrasetext)} isValid={whatsValidPriv.passphrasetext} />}
+
+                                {this.state.privkeyFields.passphrasetype == "file" &&
+                                <Form.Control as="select" value={(this.state.privkeyFields.encrypt == "true") ? this.state.passphrasefile : ""}
+                                    name="passphrasefile" onChange={e => this._onPrivkeyFieldChange(e)} disabled={this.state.privkeyFields.encrypt != "true"}
+                                    isInvalid={this._isInvalid(whatsValidPriv.passphrasefile)} isValid={whatsValidPriv.passphrasefile} >
+                                        <option key={0} value="">{(this.state.privkeyFields.encrypt == "true") ? "Select file" : ""}</option>
+                                        {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                                </Form.Control>}
+
                             </Form.Group>
+
                         </Col>}
-                        <Col>
+
+                        <Col xs={12} md={6}>
                             <Form.Group>
                                 <Form.Label>
                                     <Form.Check custom inline type="checkbox" name="useoutputfile" id="genkey-privkey-useoutputfile"
-                                        label="Output private key to file" value={(this.state.privkeyFields.useoutputfile == "true" ? "false" : "true")}
+                                        label="Output Private Key to file" value={(this.state.privkeyFields.useoutputfile == "true" ? "false" : "true")}
                                         onChange={e => this._onPrivkeyFieldChange(e)} checked={this.state.privkeyFields.useoutputfile == "true"} />
                                 </Form.Label>
-                                <Form.Control type="text" value={this.state.privkeyFields.outputfile} name="outputfile"
+                                <Form.Control type="text" value={this.state.privkeyFields.outputfile || ""} name="outputfile"
                                     onChange={e => this._onPrivkeyFieldChange(e)} disabled={this.state.privkeyFields.useoutputfile != "true"}
                                     isInvalid={this._isInvalid(whatsValidPriv.outputfile)} isValid={whatsValidPriv.outputfile} />
                             </Form.Group>
                         </Col>
+
+                        {this.state.keytype == "rsa" &&
+                        <Col xs={12} md={6}>
+                            <Form.Group>
+                                <Form.Label className={(this.state.privkeyFields.encrypt != "true" ? "text-muted" : "")}>Encryption Cipher</Form.Label>
+                                <Form.Control as="select" value={(this.state.privkeyFields.encrypt == "true") ? this.state.privkeyFields.cipher : ""} name="cipher"
+                                    onChange={e => this._onPrivkeyFieldChange(e)} disabled={this.state.privkeyFields.encrypt != "true"}
+                                    isInvalid={this._isInvalid(whatsValidPriv.cipher)} isValid={whatsValidPriv.cipher}>
+                                        <option key={0} value="">{(this.state.privkeyFields.encrypt == "true") ? "Select cipher" : ""}</option>
+                                        {this.props.cipherList.map(cipher => <option key={cipher} value={cipher}>{cipher}</option>)}
+                                </Form.Control>
+                            </Form.Group>
+                        </Col>}
+
                     </Row>
 
                     <hr style={{ marginTop: "0.5rem", marginBottom: "1.5rem" }} />
@@ -138,41 +193,69 @@ class GenKeyTab extends React.Component {
                 </Card.Body>
             </Card>
 
+            </Form>
+            <Form onSubmit={e => e.preventDefault()}>
+
             <Card className="mt-4">
                 <Card.Header className={"d-flex align-items-center justify-content-between"}>
-                    <b>2) Public Key Generation</b>
+                    <b>2) Derive Public Key</b>
                     <Button variant="dark" size="sm" onClick={() => this._resetPubkeyFields()}>
                         <i className="fa fa-undo"></i> Reset fields
                     </Button>
                 </Card.Header>
                 <Card.Body>
                     <Row>
-                        <Col>
+
+                        <Col xs={12} md={this.state.keytype == "ec" ? 4 : 6}>
                             <Form.Group>
-                                <Form.Label>{this.state.keytype != "ec" ? "Private key" : "EC params"} input file name</Form.Label>
+                                <Form.Label>{this.state.keytype != "ec" ? "Private Key" : "EC Params"} input file name</Form.Label>
                                 <Form.Control required as="select" value={this.state.pubkeyFields.inputprivkey}
                                     name="inputprivkey" onChange={e => this._onPubkeyFieldChange(e)}
                                     isValid={whatsValidPub.inputprivkey} isInvalid={this._isInvalid(whatsValidPub.inputprivkey)}>
                                         <option key={0} value="">Select file</option>
-                                        {privateKeys.map(privkey => <option key={privkey} value={privkey}>{privkey}</option>)}
+                                        {this.privateKeys.map(privkey => <option key={privkey} value={privkey}>{privkey}</option>)}
                                 </Form.Control>
                             </Form.Group>
                         </Col>
-                        <Col>
+
+                        {this.state.keytype == "rsa" &&
+                        <Col xs={12} md={6}>
+
                             <Form.Group>
-                                <Form.Label>Public key output format</Form.Label>
-                                <Form.Control required as="select" value={this.state.pubkeyFields.keyformat}
-                                    name="keyformat" onChange={e => this._onPubkeyFieldChange(e)}
-                                    isValid={whatsValidPub.keyformat} isInvalid={this._isInvalid(whatsValidPub.keyformat)}>
-                                        {this._keyFormats.map(format => <option key={format} value={format}>{format}</option>)}
-                                </Form.Control>
+
+                                <Form.Label className="d-block">
+                                    <span className={"mr-3 " + (!this.isInputprivkeyEncrypted ? "text-muted" : "")}>Private Key Passphrase:</span>
+                                    <Form.Check custom inline type="radio" name="passphrasetype" value="text"
+                                        label="Text" onChange={e => this._onPubkeyFieldChange(e)} id="genkey-pubkey-passphrasetype-text"
+                                        disabled={!this.isInputprivkeyEncrypted} checked={this.state.pubkeyFields.passphrasetype == "text"} />
+                                    <Form.Check custom inline type="radio" name="passphrasetype" value="file"
+                                        label="File" onChange={e => this._onPubkeyFieldChange(e)} id="genkey-pubkey-passphrasetype-file"
+                                        disabled={!this.isInputprivkeyEncrypted} checked={this.state.pubkeyFields.passphrasetype == "file"} />
+                                </Form.Label>
+
+                                {this.state.pubkeyFields.passphrasetype == "text" &&
+                                <Form.Control type="password" placeholder={this.isInputprivkeyEncrypted ? "Enter passphrase .." : "Private Key not encrypted"}
+                                    name="passphrasetext" value={(this.isInputprivkeyEncrypted) ? (this.state.pubkeyFields.passphrasetext || "") : ""}
+                                    onChange={e => this._onPubkeyFieldChange(e)} disabled={!this.isInputprivkeyEncrypted}
+                                    isInvalid={this._isInvalid(whatsValidPub.passphrasetext)} isValid={whatsValidPub.passphrasetext} />}
+
+                                {this.state.pubkeyFields.passphrasetype == "file" &&
+                                <Form.Control as="select" value={(this.isInputprivkeyEncrypted) ? this.state.pubkeyFields.passphrasefile : ""}
+                                    name="passphrasefile" onChange={e => this._onPubkeyFieldChange(e)} disabled={!this.isInputprivkeyEncrypted}
+                                    isInvalid={this._isInvalid(whatsValidPub.passphrasefile)} isValid={whatsValidPub.passphrasefile} >
+                                        <option key={0} value="">{(this.isInputprivkeyEncrypted) ? "Select file" : "Private Key not encrypted"}</option>
+                                        {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                                </Form.Control>}
+
                             </Form.Group>
-                        </Col>
-                        <Col>
+
+                        </Col>}
+
+                        <Col xs={12} md={this.state.keytype == "ec" ? 4 : 6}>
                             <Form.Group>
                                 <Form.Label>
                                     <Form.Check custom inline type="checkbox" name="useoutputfile" id="genkey-pubkey-useoutputfile"
-                                        label="Output public key to file" value={(this.state.pubkeyFields.useoutputfile == "true" ? "false" : "true")}
+                                        label="Output Public Key to file" value={(this.state.pubkeyFields.useoutputfile == "true" ? "false" : "true")}
                                         onChange={e => this._onPubkeyFieldChange(e)} checked={this.state.pubkeyFields.useoutputfile == "true"} />
                                 </Form.Label>
                                 <Form.Control type="text" value={this.state.pubkeyFields.outputfile} name="outputfile"
@@ -180,6 +263,18 @@ class GenKeyTab extends React.Component {
                                     isInvalid={this._isInvalid(whatsValidPub.outputfile)} isValid={whatsValidPub.outputfile} />
                             </Form.Group>
                         </Col>
+
+                        <Col xs={12} md={this.state.keytype == "ec" ? 4 : 6}>
+                            <Form.Group>
+                                <Form.Label>Public Key output format</Form.Label>
+                                <Form.Control required as="select" value={this.state.pubkeyFields.keyformat}
+                                    name="keyformat" onChange={e => this._onPubkeyFieldChange(e)}
+                                    isValid={whatsValidPub.keyformat} isInvalid={this._isInvalid(whatsValidPub.keyformat)}>
+                                        {this._keyFormats.map(format => <option key={format} value={format}>{format}</option>)}
+                                </Form.Control>
+                            </Form.Group>
+                        </Col>
+
                     </Row>
 
                     <hr style={{ marginTop: "0.5rem", marginBottom: "1.5rem" }} />
@@ -189,7 +284,9 @@ class GenKeyTab extends React.Component {
                 </Card.Body>
             </Card>
 
-        </Form>
+            </Form>
+
+        </>
 
     }
 
@@ -216,15 +313,26 @@ class GenKeyTab extends React.Component {
         // check if output filename is valid
         if(this.state.privkeyFields.useoutputfile == "true")
             whatsValid.outputfile = !(!(this.state.privkeyFields.outputfile || "").trim())
-        else whatsValid.outputfile = undefined
 
         if(this.state.keytype == "rsa") {
 
             // check if key length is valid
             whatsValid.keylength = this._numbits.includes(parseInt(this.state.privkeyFields.keylength))
 
-            // check if passphrase is valid
-            if((this.state.privkeyFields.passphrase || "").length > 0) whatsValid.passphrase = true
+            if(this.state.privkeyFields.encrypt == "true") {
+
+                // check if passphrase text is valid
+                if(this.state.privkeyFields.passphrasetype == "text")
+                    whatsValid.passphrasetext = !(!this.state.privkeyFields.passphrasetext)
+
+                // check if passphrase file is valid
+                if(this.state.privkeyFields.passphrasetype == "file")
+                    whatsValid.passphrasefile = !(!this.state.privkeyFields.passphrasefile)
+
+                // check if cipher is valid
+                whatsValid.cipher = this.props.cipherList.includes(this.state.privkeyFields.cipher)
+
+            }
 
         }
 
@@ -249,12 +357,19 @@ class GenKeyTab extends React.Component {
 
             command += " genrsa"
 
+            // todo: entweder special chars replacen oder parameter in "" übergeben (anführungszeichen)
+            if(this.state.privkeyFields.encrypt == "true") {
+                command += " -" + this.state.privkeyFields.cipher
+
+                if(this.state.privkeyFields.passphrasetype == "text")
+                    command += " -passout pass:" + this.state.privkeyFields.passphrasetext
+
+                if(this.state.privkeyFields.passphrasetype == "file")
+                    command += " -passout file:" + this.state.privkeyFields.passphrasefile
+            }
+
             if(this.state.privkeyFields.useoutputfile == "true")
                 command += " -out " + this.state.privkeyFields.outputfile
-
-            // todo: entweder special chars replacen oder parameter in "" übergeben (anführungszeichen)
-            if((this.state.privkeyFields.passphrase || "").length > 0)
-                command += " -passout pass:" + this.state.privkeyFields.passphrase
 
             command += " " + this.state.privkeyFields.keylength
 
@@ -296,12 +411,23 @@ class GenKeyTab extends React.Component {
         let whatsValid = {}
 
         // check if input privkey is valid
-        whatsValid.inputprivkey = !(!this.state.pubkeyFields.inputprivkey)
+        whatsValid.inputprivkey = this.privateKeys.includes(this.state.pubkeyFields.inputprivkey)
+
+        if(this.isInputprivkeyEncrypted) {
+
+            // check if passphrase text is valid
+            if(this.state.pubkeyFields.passphrasetype == "text")
+                whatsValid.passphrasetext = !(!this.state.pubkeyFields.passphrasetext)
+
+            // check if passphrase file is valid
+            if(this.state.pubkeyFields.passphrasetype == "file")
+                whatsValid.passphrasefile = !(!this.state.pubkeyFields.passphrasefile)
+
+        }
 
         // check if output filename is valid
         if(this.state.pubkeyFields.useoutputfile == "true")
             whatsValid.outputfile = !(!(this.state.pubkeyFields.outputfile || "").trim())
-        else whatsValid.outputfile = undefined
 
         // check if output key format is valid
         whatsValid.keyformat = this._keyFormats.includes(this.state.pubkeyFields.keyformat)
@@ -319,8 +445,17 @@ class GenKeyTab extends React.Component {
         if(this.state.keytype == "rsa") {
             command += " rsa -pubout"
             command += " -in " + this.state.pubkeyFields.inputprivkey
-            command += " -outform " + this.state.pubkeyFields.keyformat
 
+            if(this.isInputprivkeyEncrypted) {
+
+                if(this.state.pubkeyFields.passphrasetype == "text")
+                    command += " -passin pass:" + this.state.pubkeyFields.passphrasetext
+
+                if(this.state.pubkeyFields.passphrasetype == "file")
+                    command += " -passin file:" + this.state.pubkeyFields.passphrasefile
+            }
+
+            command += " -outform " + this.state.pubkeyFields.keyformat
             if(this.state.pubkeyFields.useoutputfile == "true")
                 command += " -out " + this.state.pubkeyFields.outputfile
         }
@@ -364,42 +499,6 @@ class GenKeyTab extends React.Component {
         return string
     } */
 
-    // filter files for private keys -> return array of file names
-    _getPrivateKeysFilenamesFromFiles() {
-        let privateKeyList = []
-        this.props.files.forEach(file => {
-
-            // get first 100 chars of file (todo: maybe until line break?)
-            const fileHead = (new TextDecoder).decode(file.bytes.subarray(0, 100))
-
-            // define regular expression for private key headers
-            const regex = new RegExp("^-----BEGIN * PRIVATE KEY-----")
-
-            // check if it matches -> save filename
-            if(fileHead.match(regex) != null) privateKeyList.push(file.name)
-
-        })
-        return privateKeyList
-    }
-
-    // filter files for ec param files -> return array of file names
-    _getEllipticCurvesParamsFilenamesFromFiles() {
-        let ecParamList = []
-        this.props.files.forEach(file => {
-
-            // get first 100 chars of file (todo: maybe until line break?)
-            const fileHead = (new TextDecoder).decode(file.bytes.subarray(0, 100))
-
-            // define regular expression for private key headers
-            const regex = new RegExp("^-----BEGIN EC PARAMETERS-----")
-
-            // check if it matches -> save filename
-            if(fileHead.match(regex) != null) ecParamList.push(file.name)
-
-        })
-        return ecParamList
-    }
-
 }
 
-export default GenKeyTab
+export default GenKeysTab
