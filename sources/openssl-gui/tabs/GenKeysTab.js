@@ -234,7 +234,7 @@ class GenKeysTab extends React.Component {
                                 </Form.Label>
 
                                 {this.state.pubkeyFields.passphrasetype == "text" &&
-                                <Form.Control type="password" placeholder={this.isInputprivkeyEncrypted ? "Enter passphrase .." : "Private Key not encrypted"}
+                                <Form.Control type="password" placeholder={this.isInputprivkeyEncrypted ? "Enter passphrase .." : ( this.state.pubkeyFields.inputprivkey?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" )}
                                     name="passphrasetext" value={(this.isInputprivkeyEncrypted) ? (this.state.pubkeyFields.passphrasetext || "") : ""}
                                     onChange={e => this._onPubkeyFieldChange(e)} disabled={!this.isInputprivkeyEncrypted}
                                     isInvalid={this._isInvalid(whatsValidPub.passphrasetext)} isValid={whatsValidPub.passphrasetext} />}
@@ -243,7 +243,7 @@ class GenKeysTab extends React.Component {
                                 <Form.Control as="select" value={(this.isInputprivkeyEncrypted) ? this.state.pubkeyFields.passphrasefile : ""}
                                     name="passphrasefile" onChange={e => this._onPubkeyFieldChange(e)} disabled={!this.isInputprivkeyEncrypted}
                                     isInvalid={this._isInvalid(whatsValidPub.passphrasefile)} isValid={whatsValidPub.passphrasefile} >
-                                        <option key={0} value="">{(this.isInputprivkeyEncrypted) ? "Select file" : "Private Key not encrypted"}</option>
+                                        <option key={0} value="">{(this.isInputprivkeyEncrypted) ? "Select file" : ( this.state.pubkeyFields.inputprivkey?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" )}</option>
                                         {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                                 </Form.Control>}
 

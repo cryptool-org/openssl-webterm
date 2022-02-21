@@ -83,6 +83,8 @@ class EncryptionTab extends React.Component {
                 </Col>
             </Row>
 
+            <hr style={{ marginTop: "0", marginBottom: "1.5rem" }} />
+
             <Form.Group>
 
                 <Form.Label>
@@ -98,7 +100,7 @@ class EncryptionTab extends React.Component {
                 {this.state.inputtype == "text" &&
                 <Form.Control as="textarea" name="inputtext" value={this.state.inputtext}
                     onChange={e => this.onChange(e)} isValid={whatsValid.inputtext}
-                    isInvalid={this._isInvalid(whatsValid.inputtext)} />}
+                    isInvalid={this._isInvalid(whatsValid.inputtext)} rows={3} />}
 
                 {this.state.inputtype == "file" &&
                 <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
@@ -156,7 +158,7 @@ class EncryptionTab extends React.Component {
                         </Form.Label>
 
                         {this.state.passphrasetype == "text" &&
-                        <Form.Control type="password" placeholder={(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? "Private Key not encrypted" :  "Enter passphrase .." )}
+                        <Form.Control type="password" placeholder={(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" ) :  "Enter passphrase .." )}
                             value={(this.state.method == "key" && this.state.mode == "encrypt") ? "" : (this.state.passphrasetext || "")}
                             name="passphrasetext" onChange={e => this.onChange(e)} disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}
                             isInvalid={this._isInvalid(whatsValid.passphrasetext)} isValid={whatsValid.passphrasetext} />}
@@ -166,7 +168,7 @@ class EncryptionTab extends React.Component {
                             name="passphrasefile" onChange={e => this.onChange(e)}
                             isInvalid={this._isInvalid(whatsValid.passphrasefile)} isValid={whatsValid.passphrasefile}
                             disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}>
-                                <option key={0} value="">{(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? "Private Key not encrypted" : "Select file" )}</option>
+                                <option key={0} value="">{(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" ) : "Select file" )}</option>
                                 {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                         </Form.Control>}
 
@@ -320,8 +322,8 @@ class EncryptionTab extends React.Component {
             if(this.state.pbkdf2 == "true")
                 command += " -pbkdf2"
 
-            if(this.state.salt == "true")
-                command += " -salt"
+            if(this.state.salt != "true")
+                command += " -nosalt"
 
             if(this.state.base64 == "true")
                 command += " -a"

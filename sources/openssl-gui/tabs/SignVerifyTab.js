@@ -1,5 +1,6 @@
 import React from "react"
 import { Button, Card, Col, Form, Row } from "react-bootstrap"
+import CommandField from "../CommandField"
 import Helpers from "../Helpers"
 
 class SignVerifyTab extends React.Component {
@@ -11,130 +12,391 @@ class SignVerifyTab extends React.Component {
 
             /* default values */
 
-            encdecFields: {
-                mode: "encrypt"
-            },
-
             signingFields: {
-
+                inputtype: "text",
+                inputtext: "Hello world",
+                passphrasetype: "text",
+                outputfile: "signed.data"
             },
 
             verifyFields: {
-
+                inputtype: "text",
+                inputtext: "Hello world"
             }
 
         }
+
+        // save initial state for reset (copy - no reference)
+        this._initialState = JSON.parse(JSON.stringify(this.state))
+
+        window.sig = this // todo: debug
+
     }
 
     render() {
 
-        // check if last select privkey is still available
-        // todo: das allgemeiner lösen. hier hab ich zu viele select fields..
+        // filter files for private and public keys
+        this.privateKeys = Helpers.getPrivateKeysFilenamesFromFiles(this.props.files)
+        this.publicKeys = Helpers.getPublicKeysFilenamesFromFiles(this.props.files)
 
-        // validate fields and build command for enc dec
-        const whatsValidEncDec = {} // todo
+        // check if last selected privkey is still available
+        if(this.state.signingFields.privkey != "" // "" means "Select file"
+        && !this.privateKeys.includes(this.state.signingFields.privkey))
+            this.state.signingFields.privkey = undefined
 
-        return <h1>Sign Verify</h1>
+        // check if last selected pubkey is still available
+        if(this.state.verifyFields.pubkey != "" // "" means "Select file"
+        && !this.publicKeys.includes(this.state.verifyFields.pubkey))
+            this.state.verifyFields.pubkey = undefined
 
-        return <Form onSubmit={e => e.preventDefault()}>
+        // check if last selected sigfile is still available
+        if(this.state.verifyFields.sigfile != "" // "" means "Select file"
+        && !this.props.files.some(f => f.name == this.state.verifyFields.sigfile))
+            this.state.verifyFields.sigfile = undefined
 
-            <Card className="mt-4">
+        // set default privkey file (on files update)
+        if(this.state.signingFields.privkey == undefined && this.privateKeys.length > 0)
+            this.state.signingFields.privkey = this.privateKeys[0]
+
+        // set default pubkey file (on files update)
+        if(this.state.verifyFields.pubkey == undefined && this.publicKeys.length > 0)
+            this.state.verifyFields.pubkey = this.publicKeys[0]
+
+        // check if selected privkey is encrypted
+        if(this.state.signingFields.privkey != "") {
+            let privkeyFile = this.props.files.find(file => file.name == this.state.signingFields.privkey)
+            this.isPrivateKeyEncrypted = privkeyFile ? Helpers.isKeyEncrypted(privkeyFile) : undefined
+        } else this.isPrivateKeyEncrypted = undefined
+
+        // validate fields and build command for signing
+        const whatsValidSign = this._validateSigningFields()
+        const signingCommand = this._buildSigningCommand(whatsValidSign)
+
+        // validate fields and build command for verify
+        const whatsValidVery = this._validateVerifyFields()
+        const verifyCommand  = this._buildVerifyCommand(whatsValidVery)
+
+        return <>
+
+            <Card>
                 <Card.Header className={"d-flex align-items-center justify-content-between"}>
-                    <b>Encrypt and Decrypt</b>
-                    <Button variant="dark" size="sm" onClick={() => this._resetEncDecFields()}>
+                    <b>1) Sign with Private Key</b>
+                    <Button variant="dark" size="sm" onClick={() => this._resetSigningFields()}>
                         <i className="fa fa-undo"></i> Reset fields
                     </Button>
                 </Card.Header>
                 <Card.Body>
 
-                    <Form.Group>
-                        <Form.Label className="d-inline-block mr-3">Mode:</Form.Label>
-                        <Form.Check custom inline type="radio" name="mode" value="encrypt"
-                            label="Encrypt" onChange={e => this._onEncDecFieldChange(e)}
-                            id="keyutils-encdec-mode-encrypt" checked={this.state.mode == "encrypt"} />
-                        <Form.Check custom inline type="radio" name="mode" value="decrypt"
-                            label="Decrypt" onChange={e => this._onEncDecFieldChange(e)}
-                            id="keyutils-encdec-mode-decrypt" checked={this.state.mode == "decrypt"} />
-                    </Form.Group>
+                    <Form onSubmit={e => e.preventDefault()}>
 
-                    <Row>
-                        <Col>
+                        <Form.Group>
 
-                            {this.state.encdecFields.mode == "encrypt" &&
-                            <Form.Group>
-                                <Form.Label>Public Key</Form.Label>
-                                <Form.Control required as="select" value={this.state.encdecFields.pubkey}
-                                    name="pubkey" onChange={e => this._onEncDecFieldChange(e)}
-                                    isValid={whatsValidEncDec.pubkey} isInvalid={this._isInvalid(whatsValidEncDec.pubkey)}>
-                                        <option key={0} value="">Select file</option>
-                                        {Helpers.getPublicKeysFilenamesFromFiles(this.props.files).map(
-                                            pubkey => <option key={pubkey} value={pubkey}>{pubkey}-bit</option>)}
-                                </Form.Control>
-                            </Form.Group>}
+                            <Form.Label>
+                                <span className="mr-3">Input:</span>
+                                <Form.Check custom inline type="radio" name="inputtype" value="text"
+                                    label="Text" onChange={e => this._onSigningFieldChange(e)} id="signing-inputtype-text"
+                                    checked={this.state.signingFields.inputtype == "text"} />
+                                <Form.Check custom inline type="radio" name="inputtype" value="file"
+                                    label="File" onChange={e => this._onSigningFieldChange(e)} id="signing-inputtype-file"
+                                    checked={this.state.signingFields.inputtype == "file"} />
+                            </Form.Label>
 
-                            {this.state.encdecFields.mode == "decrypt" &&
-                            <Form.Group>
-                                <Form.Label>Private Key</Form.Label>
-                                <Form.Control required as="select" value={this.state.encdecFields.privkey}
-                                    name="privkey" onChange={e => this._onEncDecFieldChange(e)}
-                                    isValid={whatsValidEncDec.privkey} isInvalid={this._isInvalid(whatsValidEncDec.privkey)}>
-                                        <option key={0} value="">Select file</option>
-                                        {Helpers.getPrivateKeysFilenamesFromFiles(this.props.files).map(
-                                            privkey => <option key={privkey} value={privkey}>{privkey}-bit</option>)}
-                                </Form.Control>
-                            </Form.Group>}
+                            {this.state.signingFields.inputtype == "text" &&
+                            <Form.Control as="textarea" name="inputtext" value={this.state.signingFields.inputtext}
+                                onChange={e => this._onSigningFieldChange(e)} isValid={whatsValidSign.inputtext}
+                                isInvalid={this._isInvalid(whatsValidSign.inputtext)} rows={3} />}
 
-                        </Col>
-                        <Col>
-                            <Form.Group>
+                            {this.state.signingFields.inputtype == "file" &&
+                            <Form.Control as="select" value={this.state.signingFields.inputfile} name="inputfile" onChange={e => this._onSigningFieldChange(e)}
+                                isInvalid={this._isInvalid(whatsValidSign.inputfile)} isValid={whatsValidSign.inputfile}>
+                                    <option key={0} value="">Select file</option>
+                                    {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                            </Form.Control>}
 
-                                <Form.Label>
-                                    <span className="mr-3">Input:</span>
-                                    <Form.Check custom inline type="radio" name="inputtype" value="text"
-                                        label="Text" onChange={e => this.onChange(e)} id="encdec-inputtype-text"
-                                        checked={this.state.inputtype == "text"} />
-                                    <Form.Check custom inline type="radio" name="inputtype" value="file"
-                                        label="File" onChange={e => this.onChange(e)} id="encdec-inputtype-file"
-                                        checked={this.state.inputtype == "file"} />
-                                </Form.Label>
+                        </Form.Group>
 
-                                {this.state.inputtype == "text" &&
-                                <Form.Control as="textarea" name="inputtext" value={this.state.inputtext}
-                                    onChange={e => this.onChange(e)} isValid={whatsValid.inputtext}
-                                    isInvalid={this._isInvalid(whatsValid.inputtext)} />}
+                        <Row>
 
-                                {this.state.inputtype == "file" &&
-                                <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
-                                    isInvalid={this._isInvalid(whatsValid.inputfile)} isValid={whatsValid.inputfile}>
-                                        <option key={0} value="">Select file</option>
-                                        {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
-                                </Form.Control>}
+                            <Col>
+                                <Form.Group>
+                                    <Form.Label>Private Key</Form.Label>
+                                    <Form.Control required as="select" value={this.state.signingFields.privkey}
+                                        name="privkey" onChange={e => this._onSigningFieldChange(e)}
+                                        isValid={whatsValidSign.privkey} isInvalid={this._isInvalid(whatsValidSign.privkey)}>
+                                            <option key={0} value="">Select file</option>
+                                            {this.privateKeys.map(privkey => <option key={privkey} value={privkey}>{privkey}</option>)}
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
 
-                            </Form.Group>
-                        </Col>
-                        <Col>
-                            <Form.Group>
-                                <Form.Label>
-                                    <Form.Check custom inline type="checkbox" name="useoutputfile" id="keyutils-encdec-useoutputfile"
-                                        label="Output Private Key to file" value={(this.state.encdecFields.useoutputfile == "true" ? "false" : "true")}
-                                        onChange={e => this._onEncDecFieldChange(e)} checked={this.state.encdecFields.useoutputfile == "true"} />
-                                </Form.Label>
-                                <Form.Control type="text" value={this.state.encdecFields.outputfile} name="outputfile"
-                                    onChange={e => this._onEncDecFieldChange(e)} disabled={this.state.encdecFields.useoutputfile != "true"}
-                                    isInvalid={this._isInvalid(whatsValidEncDec.outputfile)} isValid={whatsValidEncDec.outputfile} />
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                            <Col>
+                                <Form.Group>
+
+                                    <Form.Label className="d-block">
+                                        <span className={"mr-3 " + (!this.isPrivateKeyEncrypted ? "text-muted" : "")}>Private Key Passphrase:</span>
+                                        <Form.Check custom inline type="radio" name="passphrasetype" value="text"
+                                            label="Text" onChange={e => this._onSigningFieldChange(e)} id="signing-passphrasetype-text"
+                                            disabled={!this.isPrivateKeyEncrypted} checked={this.state.signingFields.passphrasetype == "text"} />
+                                        <Form.Check custom inline type="radio" name="passphrasetype" value="file"
+                                            label="File" onChange={e => this._onSigningFieldChange(e)} id="signing-passphrasetype-file"
+                                            disabled={!this.isPrivateKeyEncrypted} checked={this.state.signingFields.passphrasetype == "file"} />
+                                    </Form.Label>
+
+                                    {this.state.signingFields.passphrasetype == "text" &&
+                                    <Form.Control type="password" placeholder={this.isPrivateKeyEncrypted ? "Enter passphrase .." : ( this.state.signingFields.privkey?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" )}
+                                        name="passphrasetext" value={(this.isPrivateKeyEncrypted) ? (this.state.signingFields.passphrasetext || "") : ""}
+                                        onChange={e => this._onSigningFieldChange(e)} disabled={!this.isPrivateKeyEncrypted}
+                                        isInvalid={this._isInvalid(whatsValidSign.passphrasetext)} isValid={whatsValidSign.passphrasetext} />}
+
+                                    {this.state.signingFields.passphrasetype == "file" &&
+                                    <Form.Control as="select" value={(this.isPrivateKeyEncrypted) ? this.state.signingFields.passphrasefile : ""}
+                                        name="passphrasefile" onChange={e => this._onSigningFieldChange(e)} disabled={!this.isPrivateKeyEncrypted}
+                                        isInvalid={this._isInvalid(whatsValidSign.passphrasefile)} isValid={whatsValidSign.passphrasefile} >
+                                            <option key={0} value="">{(this.isPrivateKeyEncrypted) ? "Select file" : "Private Key not encrypted"}</option>
+                                            {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                                    </Form.Control>}
+
+                                </Form.Group>
+                            </Col>
+
+                        </Row>
+                        <Row>
+
+                            <Col>
+                                <Form.Group>
+                                    <Form.Label>
+                                        <Form.Check custom inline type="checkbox" name="useoutputfile" id="signing-useoutputfile"
+                                            label="Output signature to file" value={(this.state.signingFields.useoutputfile == "true" ? "false" : "true")}
+                                            onChange={e => this._onSigningFieldChange(e)} checked={this.state.signingFields.useoutputfile == "true"} />
+                                    </Form.Label>
+                                    <Form.Control type="text" value={this.state.signingFields.outputfile || ""} name="outputfile"
+                                        onChange={e => this._onSigningFieldChange(e)} disabled={this.state.signingFields.useoutputfile != "true"}
+                                        isInvalid={this._isInvalid(whatsValidSign.outputfile)} isValid={whatsValidSign.outputfile} />
+                                </Form.Group>
+                            </Col>
+
+                            <Col>
+                                <Form.Label className="d-block">Options:</Form.Label>
+                                <Form.Check custom inline type="checkbox" name="base64" id="signing-base64" disabled={true}
+                                    label="Base64 (todo)" value={(this.state.signingFields.base64 == "true" ? "false" : "true")}
+                                    onChange={e => this._onSigningFieldChange(e)} checked={this.state.base64 == "true"} />
+                            </Col>
+
+                        </Row>
+
+                    </Form>
 
                     <hr style={{ marginTop: "0.5rem", marginBottom: "1.5rem" }} />
-                    <CommandField command={privkeyCommand} runCommand={this.props.runCommand}
-                        enableRun={!Object.values(whatsValidPriv).includes(false)} />
+                    <CommandField command={signingCommand} runCommand={this.props.runCommand}
+                        enableRun={!Object.values(whatsValidSign).includes(false)} />
 
                 </Card.Body>
             </Card>
 
-        </Form>
+            <Card className="mt-4">
+                <Card.Header className={"d-flex align-items-center justify-content-between"}>
+                    <b>2) Verify with Public Key</b>
+                    <Button variant="dark" size="sm" onClick={() => this._resetVerifyFields()}>
+                        <i className="fa fa-undo"></i> Reset fields
+                    </Button>
+                </Card.Header>
+                <Card.Body>
+
+                    <Form onSubmit={e => e.preventDefault()}>
+
+                        <Form.Group>
+
+                            <Form.Label>
+                                <span className="mr-3">Input:</span>
+                                <Form.Check custom inline type="radio" name="inputtype" value="text"
+                                    label="Text" onChange={e => this._onVerifyFieldChange(e)} id="verify-inputtype-text"
+                                    checked={this.state.verifyFields.inputtype == "text"} />
+                                <Form.Check custom inline type="radio" name="inputtype" value="file"
+                                    label="File" onChange={e => this._onVerifyFieldChange(e)} id="verify-inputtype-file"
+                                    checked={this.state.verifyFields.inputtype == "file"} />
+                            </Form.Label>
+
+                            {this.state.verifyFields.inputtype == "text" &&
+                            <Form.Control as="textarea" name="inputtext" value={this.state.verifyFields.inputtext}
+                                onChange={e => this._onVerifyFieldChange(e)} isValid={whatsValidVery.inputtext}
+                                isInvalid={this._isInvalid(whatsValidVery.inputtext)} rows={3} />}
+
+                            {this.state.verifyFields.inputtype == "file" &&
+                            <Form.Control as="select" value={this.state.verifyFields.inputfile} name="inputfile"
+                                onChange={e => this._onVerifyFieldChange(e)} isValid={whatsValidVery.inputfile}
+                                isInvalid={this._isInvalid(whatsValidVery.inputfile)} >
+                                    <option key={0} value="">Select file</option>
+                                    {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                            </Form.Control>}
+
+                        </Form.Group>
+
+                        <Row>
+
+                            <Col>
+                                <Form.Group>
+                                    <Form.Label>Public Key</Form.Label>
+                                    <Form.Control required as="select" value={this.state.verifyFields.pubkey}
+                                        name="pubkey" onChange={e => this._onVerifyFieldChange(e)}
+                                        isValid={whatsValidVery.pubkey} isInvalid={this._isInvalid(whatsValidVery.pubkey)}>
+                                            <option key={0} value="">Select file</option>
+                                            {this.publicKeys.map(pubkey => <option key={pubkey} value={pubkey}>{pubkey}</option>)}
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
+
+                            <Col>
+                                <Form.Group>
+                                    <Form.Label>Signature file</Form.Label>
+                                    <Form.Control required as="select" value={this.state.verifyFields.sigfile || ""}
+                                        name="sigfile" onChange={e => this._onVerifyFieldChange(e)}
+                                        isValid={whatsValidVery.sigfile} isInvalid={this._isInvalid(whatsValidVery.sigfile)}>
+                                            <option key={0} value="">Select file</option>
+                                            {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
+                                    </Form.Control>
+                                </Form.Group>
+                            </Col>
+
+                        </Row>
+
+                    </Form>
+
+                    <hr style={{ marginTop: "0.5rem", marginBottom: "1.5rem" }} />
+                    <CommandField command={verifyCommand} runCommand={this.props.runCommand}
+                        enableRun={!Object.values(whatsValidVery).includes(false)} />
+
+                </Card.Body>
+            </Card>
+
+        </>
     }
+
+
+    /* signing fields handling */
+
+    _onSigningFieldChange(e) {
+        this.setState({ signingFields: { ...this.state.signingFields,
+            [e.target.name]: e.target.value } })
+    }
+
+    _validateSigningFields() {
+
+        let whatsValid = {}
+
+        // check if input text is valid
+        if(this.state.signingFields.inputtype == "text")
+            whatsValid.inputtext = !(!this.state.signingFields.inputtext)
+
+        // check if input file is valid
+        if(this.state.signingFields.inputtype == "file")
+            whatsValid.inputfile = !(!this.state.signingFields.inputfile)
+
+        // check if privkey was selected
+        whatsValid.privkey = !(!this.state.signingFields.privkey)
+
+        // check if passphrase was provided
+        if(this.isPrivateKeyEncrypted) {
+
+            // check if passphrase text is valid
+            if(this.state.signingFields.passphrasetype == "text")
+                whatsValid.passphrasetext = !(!this.state.signingFields.passphrasetext)
+
+            // check if passphrase file is valid
+            if(this.state.signingFields.passphrasetype == "file")
+                whatsValid.passphrasefile = !(!this.state.signingFields.passphrasefile)
+
+        }
+
+        // check if output file is valid
+        if(this.state.signingFields.useoutputfile == "true")
+            whatsValid.outputfile = !(!(this.state.signingFields.outputfile || "").trim())
+
+        return whatsValid
+    }
+
+    _buildSigningCommand(whatsValid = {}) {
+
+        if(Object.values(whatsValid).includes(false)) return "Please fill out the form completely"
+
+        let command = "openssl pkeyutl -sign"
+        command += " -inkey " + this.state.signingFields.privkey
+
+        if(this.isPrivateKeyEncrypted) {
+
+            if(this.state.signingFields.passphrasetype == "text")
+                command += " -passin pass:" + this.state.signingFields.passphrasetext
+
+            if(this.state.signingFields.passphrasetype == "file")
+                command += " -passin file:" + this.state.signingFields.passphrasefile
+        }
+
+        if(this.state.signingFields.inputtype == "text")
+            command = "echo " + this.state.signingFields.inputtext + " | " + command
+
+        if(this.state.signingFields.inputtype == "file")
+            command += " -in " + this.state.signingFields.inputfile
+
+        if(this.state.signingFields.useoutputfile == "true")
+            command += " -out " + this.state.signingFields.outputfile
+
+        return command
+    }
+
+    _resetSigningFields() {
+        this.setState({ signingFields: this._initialState.signingFields })
+    }
+
+
+    /* verification fields handling */
+
+    _onVerifyFieldChange(e) {
+        this.setState({ verifyFields: { ...this.state.verifyFields,
+            [e.target.name]: e.target.value } })
+    }
+
+    _validateVerifyFields() {
+
+        let whatsValid = {}
+
+        // check if input text is valid
+        if(this.state.verifyFields.inputtype == "text")
+            whatsValid.inputtext = !(!this.state.verifyFields.inputtext)
+
+        // check if input file is valid
+        if(this.state.verifyFields.inputtype == "file")
+            whatsValid.inputfile = !(!this.state.verifyFields.inputfile)
+
+        // check if public key was selected
+        whatsValid.pubkey = !(!this.state.verifyFields.pubkey)
+
+        // check if signature file was selected
+        whatsValid.sigfile = !(!this.state.verifyFields.sigfile)
+
+        return whatsValid
+    }
+
+    _buildVerifyCommand(whatsValid = {}) {
+
+        if(Object.values(whatsValid).includes(false)) return "Please fill out the form completely"
+
+        let command = "openssl pkeyutl -verify"
+        command += " -pubin -inkey " + this.state.verifyFields.pubkey
+
+        if(this.state.verifyFields.inputtype == "text")
+            command = "echo " + this.state.verifyFields.inputtext + " | " + command
+
+        if(this.state.verifyFields.inputtype == "file")
+            command += " -in " + this.state.verifyFields.inputfile
+
+        command += " -sigfile " + this.state.verifyFields.sigfile
+
+        return command
+    }
+
+    _resetVerifyFields() {
+        this.setState({ verifyFields: this._initialState.verifyFields })
+    }
+
 
 
     /* helper functions */

@@ -60,7 +60,7 @@ class OpenSSLGUI extends React.Component {
     render() {
 
         return (
-            <Tab.Container defaultActiveKey="genkeys" onSelect={ek => this.onTabSelect(ek)}>
+            <Tab.Container defaultActiveKey="signverify" onSelect={ek => this.onTabSelect(ek)}>
                 <Card className="my-3">
                     <Card.Header>
                         <Nav className="flex-column flex-md-row" variant="pills">
@@ -68,10 +68,10 @@ class OpenSSLGUI extends React.Component {
                                 <Nav.Link eventKey="welcome">Welcome</Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="genkeys">Generate Keys</Nav.Link>
+                                <Nav.Link eventKey="encryption">Encrypt &amp; Decrypt</Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="encryption">Encrypt &amp; Decrypt</Nav.Link>
+                                <Nav.Link eventKey="genkeys">Generate Keys</Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
                                 <Nav.Link eventKey="signverify">Sign &amp; Verify</Nav.Link>
@@ -91,11 +91,11 @@ class OpenSSLGUI extends React.Component {
                             <Tab.Pane eventKey="welcome">
                                 <WelcomeTabContent />
                             </Tab.Pane>
-                            <Tab.Pane eventKey="genkeys">
-                                <GenKeysTab files={this.props.files} cipherList={this.props.cipherList} curvesList={this.props.curvesList} runCommand={this.props.runCommand} />
-                            </Tab.Pane>
                             <Tab.Pane eventKey="encryption">
                                 <EncryptionTab files={this.props.files} cipherList={this.props.cipherList} runCommand={this.props.runCommand} />
+                            </Tab.Pane>
+                            <Tab.Pane eventKey="genkeys">
+                                <GenKeysTab files={this.props.files} cipherList={this.props.cipherList} curvesList={this.props.curvesList} runCommand={this.props.runCommand} />
                             </Tab.Pane>
                             <Tab.Pane eventKey="signverify">
                                 <SignVerifyTab files={this.props.files} runCommand={this.props.runCommand} />

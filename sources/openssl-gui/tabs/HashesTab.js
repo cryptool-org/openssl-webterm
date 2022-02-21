@@ -52,7 +52,7 @@ class HashesTab extends React.Component {
                 {this.state.inputtype == "text" &&
                 <Form.Control as="textarea" name="inputtext" value={this.state.inputtext}
                     onChange={e => this.onChange(e)} isValid={whatsValid.inputtext}
-                    isInvalid={this._isInvalid(whatsValid.inputtext)} />}
+                    isInvalid={this._isInvalid(whatsValid.inputtext)} rows={3} />}
 
                 {this.state.inputtype == "file" &&
                 <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
