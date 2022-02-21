@@ -4,6 +4,7 @@ import { XTerm } from "xterm-for-react"
 import EmscrWasmTerm from "emscr-wasm-term"
 
 import OpenSSLGUI from "./openssl-gui/OpenSSL_GUI"
+import { Button } from "react-bootstrap"
 
 class CommandLine extends React.Component {
 
@@ -23,12 +24,14 @@ class CommandLine extends React.Component {
         this.emscrWasmTerm.onCommandRunFinish = () => { if(!this.emscrWasmTerm._worker) this.setLoading(false) }
 
         this.state = {
+
             loading: false,
             files: this.emscrWasmTerm._wasmFsFiles,
+            fullscreen: this.props.fullscreen || false,
 
-            openSSL: {
+            openSSL: { // internal data fetched from openssl
                 curvesList: [], cipherList: [], hashfunList: []
-            } // internal data fetched from openssl
+            }
         }
 
         // set custom openssl welcome message
@@ -110,11 +113,11 @@ class CommandLine extends React.Component {
     render() {
 
         return (
-            <div>
+            <div className={"osslcmdline " + (this.state.fullscreen ? "fullscreen" : "abovebelow")}>
 
-                <div style={{position: "relative"}}>
-                    <XTerm addons={[this.emscrWasmTerm]}
-                        options={{ fontSize: 15, fontFamily: "monospace" }} />
+                <div style={{position: "relative", width: (this.state.fullscreen ? "calc(50vw - 2.5px)" : "")}}>
+
+                    <XTerm addons={[this.emscrWasmTerm]} options={{ fontSize: 15, fontFamily: "monospace" }} />
 
                     { this.state.loading && <div className="loading">
                         <i className="fa fa-spin fa-circle-o-notch fa-3x mt-1 mb-3"></i>
@@ -122,12 +125,30 @@ class CommandLine extends React.Component {
                     </div> }
                 </div>
 
+                {this.state.fullscreen && <div className="fullscreenresizer"
+                    onMouseDown={e => this._onFullscreenResize(e)}></div>}
+
                 <OpenSSLGUI files={this.state.files} setFiles={files => this.setFiles(files)}
+                    fullscreen={this.state.fullscreen} exitFullscreen={() => this.exitFullscreen()}
                     runCommand={line => this.runCommandFromOpenSSLGUI(line)} cipherList={this.state.openSSL.cipherList}
                     curvesList={this.state.openSSL.curvesList} hashfunList={this.state.openSSL.hashfunList} />
 
+                {!this.state.fullscreen && <div className="text-center">
+                <Button variant="dark" onClick={() => this.enterFullscreen()}>
+                    <i className="fa fa-arrows-alt" /> &nbsp;Enter Fullscreen
+                </Button></div>}
+
             </div>
         )
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+
+        // resize on fullscreen mode change
+        if(this.state.fullscreen != prevState.fullscreen)
+            this.emscrWasmTerm._xtermFitAddon.fit()
+
+        return true // render anyway
     }
 
 
@@ -163,6 +184,30 @@ class CommandLine extends React.Component {
         // restart repl
         this.emscrWasmTerm.repl()
 
+    }
+
+    _onFullscreenResize(e) {
+        const x = e.clientX, y = e.clientY
+        const parentElem = e.target.parentNode
+        const leftElem = e.target.previousElementSibling
+        const leftWidth = leftElem.getBoundingClientRect().width
+        document.onmousemove = (e) => {
+            const dx = e.clientX - x, dy = e.clientY - y
+            const newLeftWidth = ((leftWidth + dx) * 100) / parentElem.getBoundingClientRect().width
+            leftElem.style.width = newLeftWidth + "%"
+            this.emscrWasmTerm._xtermFitAddon.fit()
+        }
+        document.onmouseup = () => document.onmousemove = document.onmouseup = null
+    }
+
+    enterFullscreen() {
+        this.setState({ fullscreen: true })
+        document.getElementsByTagName("html")[0].style.overflow = "hidden"
+    }
+
+    exitFullscreen() {
+        this.setState({ fullscreen: false })
+        document.getElementsByTagName("html")[0].style.overflow = ""
     }
 
 }

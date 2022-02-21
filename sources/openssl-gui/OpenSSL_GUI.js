@@ -60,8 +60,8 @@ class OpenSSLGUI extends React.Component {
     render() {
 
         return (
-            <Tab.Container defaultActiveKey="signverify" onSelect={ek => this.onTabSelect(ek)}>
-                <Card className="my-3">
+            <Tab.Container defaultActiveKey="welcome" onSelect={ek => this.onTabSelect(ek)}>
+                <Card className="osslgui my-3">
                     <Card.Header>
                         <Nav className="flex-column flex-md-row" variant="pills">
                             <Nav.Item>
@@ -84,6 +84,12 @@ class OpenSSLGUI extends React.Component {
                                     {this.state.filesdirty && <Badge variant="dark" className="ml-2">New</Badge>}
                                 </Nav.Link>
                             </Nav.Item>
+                            {this.props.fullscreen &&
+                            <Nav.Item>
+                                <Nav.Link className="text-danger" onClick={this.props.exitFullscreen}>
+                                    Exit Fullscreen
+                                </Nav.Link>
+                            </Nav.Item>}
                         </Nav>
                     </Card.Header>
                     <Card.Body>

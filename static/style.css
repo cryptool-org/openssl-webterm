@@ -1,14 +1,51 @@
 body {
     background: #222 !important;
-    /* color: white !important; */
-    overflow-y: scroll;
 }
 
-/* .container {
-    max-width: 95% !important;
-} */
 
-.loading {
+/* CommandLine.css */
+
+.osslcmdline.abovebelow {
+    max-width: 1000px;
+    margin: 2rem auto;
+}
+
+.osslcmdline.fullscreen {
+    display: flex;
+    align-items: stretch;
+    overflow-y: hidden;
+
+    position: fixed;
+    top: 0; bottom: 0;
+    left: 0; right: 0;
+    z-index: 9999999999999999;
+    background: #222;
+}
+
+.osslcmdline.fullscreen > div {
+    resize: horizontal;
+    overflow: auto; /* todo: remove */
+}
+
+.osslcmdline .fullscreenresizer {
+    width: 5px; max-width: 5px;
+    cursor: col-resize;
+    user-select: none;
+}
+
+.osslcmdline .xterm.terminal {
+    padding: 1rem;
+}
+
+.osslcmdline.abovebelow .xterm.terminal {
+    height: 500px;
+}
+
+.osslcmdline.fullscreen .xterm.terminal {
+    height: 100vh;
+}
+
+.osslcmdline .loading {
     position: absolute;
     left: 0; right: 0;
     top: 0; bottom: 0;
@@ -20,16 +57,37 @@ body {
     color: #fff;
 }
 
-
-/* CommandLine.css */
-
-.xterm.terminal {
-    padding: 1rem;
+.osslcmdline .custom-radio,
+.osslcmdline .custom-checkbox {
+    user-select: none;
 }
 
 
 /* GuiControls.css */
 
-.table td, .table th {
+.osslcmdline.fullscreen .osslgui {
+    margin: 0 !important;
+    border-radius: 0;
+    flex: 1;
+}
+
+.osslcmdline.fullscreen .osslgui > .card-body {
+    overflow-y: scroll;
+}
+
+.osslcmdline .osslgui .table td,
+.osslcmdline .osslgui .table th {
     vertical-align: middle !important;
+}
+
+
+/* fix behaviour in CTO */
+
+.osslcmdline .card-header button {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+.osslcmdline .card-header button:after {
+    content: "" !important;
 }
