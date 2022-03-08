@@ -1,14 +1,5 @@
-body {
-    background: #222 !important;
-}
-
 
 /* CommandLine.css */
-
-.osslcmdline.abovebelow {
-    max-width: 1000px;
-    margin: 2rem auto;
-}
 
 .osslcmdline.fullscreen {
     display: flex;
@@ -49,7 +40,7 @@ body {
     position: absolute;
     left: 0; right: 0;
     top: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.75);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -90,4 +81,16 @@ body {
 
 .osslcmdline .card-header button:after {
     content: "" !important;
+}
+
+
+/* development environment */
+
+body.development {
+    background: #222 !important;
+}
+
+body.development .osslcmdline.abovebelow {
+    max-width: 1000px;
+    margin: 2rem auto;
 }

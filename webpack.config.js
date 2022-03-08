@@ -38,9 +38,5 @@ module.exports = {
         new HtmlWebPackPlugin({
             template: "./static/index.html", inject: false
         })
-    ],
-    optimization: {
-        concatenateModules: false,
-        minimize: false
-    }
+    ]
 }

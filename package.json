@@ -1,9 +1,9 @@
 {
-  "name": "web-openssl",
-  "version": "0.0.2",
+  "name": "openssl-webterm",
+  "version": "0.0.3",
   "description": "openssl running in browsers",
   "scripts": {
-    "serve": "npm run build && webpack serve --mode development",
+    "serve": "webpack serve --mode development",
     "build": "rm -rf dist && webpack --mode production && rm -f dist/*.LICENSE.txt",
     "build:openssl": "cd emscr/builds/openssl && ./build.sh ${ARG}"
   },
@@ -14,9 +14,10 @@
     "emscripten",
     "xterm.js",
     "js",
-    "javascript"
+    "javascript",
+    "react"
   ],
-  "author": "",
+  "author": "z11labs",
   "license": "UNLICENSED",
   "dependencies": {
     "@babel/core": "^7.17.4",
@@ -24,7 +25,7 @@
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.6.0",
-    "emscr-wasm-term": "github:cryptool-org/emscr-wasm-term",
+    "wasm-webterm": "github:cryptool-org/wasm-webterm",
     "html-webpack-plugin": "^5.5.0",
     "react": "^17.0.2",
     "react-bootstrap": "^1.6.4",

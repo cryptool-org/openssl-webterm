@@ -1,32 +1,33 @@
 import React from "react"
 
 import { XTerm } from "xterm-for-react"
-import EmscrWasmTerm from "emscr-wasm-term"
+import WasmWebTerm from "wasm-webterm"
 
 import OpenSSLGUI from "./openssl-gui/OpenSSL_GUI"
 import { Button } from "react-bootstrap"
 
 class CommandLine extends React.Component {
 
-    emscrWasmTerm
+    wasmTerm
 
     constructor(props) {
         super(props)
 
         window.commandLine = this // todo: debug
 
-        // init emscripten wasm xterm addon
-        this.emscrWasmTerm = new EmscrWasmTerm(baseUrl + "bin", baseUrl + "bin")
+        // init wasm xterm addon
+        this.wasmTerm = new WasmWebTerm(baseUrl + "bin")
 
         // register api handlers for addon interaction
-        this.emscrWasmTerm.onFileSystemUpdate = files => this.setFiles(files)
-        this.emscrWasmTerm.onBeforeCommandRun = () => { if(!this.emscrWasmTerm._worker) this.setLoading("executing command") }
-        this.emscrWasmTerm.onCommandRunFinish = () => { if(!this.emscrWasmTerm._worker) this.setLoading(false) }
+        this.wasmTerm.onFileSystemUpdate = files => this.setFiles(files)
+        this.wasmTerm.onBeforeCommandRun = () => { if(!this.wasmTerm._worker) return new Promise(resolve => // using promise + timeout
+            { this.setLoading("executing command", () => setTimeout(() => resolve(), 20)) }) } // to show animation before gui freezes ^^
+        this.wasmTerm.onCommandRunFinish = () => { if(!this.wasmTerm._worker) this.setLoading(false) }
 
         this.state = {
 
             loading: false,
-            files: this.emscrWasmTerm._wasmFsFiles,
+            files: this.wasmTerm._wasmFsFiles,
             fullscreen: this.props.fullscreen || false,
 
             openSSL: { // internal data fetched from openssl
@@ -35,38 +36,37 @@ class CommandLine extends React.Component {
         }
 
         // set custom openssl welcome message
-        this.emscrWasmTerm._printWelcomeMessage = () => {
+        this.wasmTerm._printWelcomeMessage = () => {
             return new Promise(resolve => {
-                this.emscrWasmTerm._xtermEcho.abortRead()
-                this.emscrWasmTerm._xterm.write(`\x1b[1;32m
+                let welcomemessage = `\x1b[1;32m
  _ _ _     _      _____             _____ _____ __    \r
 | | | |___| |_   |     |___ ___ ___|   __|   __|  |   \r
 | | | | -_| . |  |  |  | . | -_|   |__   |__   |  |__ \r
 |_____|___|___|  |_____|  _|___|_|_|_____|_____|_____|\r
                        |_|                            \r
-                \x1b[37m\r`)
-                this.emscrWasmTerm.runCommandHeadless("openssl", ["version"], null, version => {
-                    // this.emscrWasmTerm._xterm.write("\x1B[A")
-                    this.emscrWasmTerm._xterm.write("\r\n" + version.output + "\r")
-                    this.emscrWasmTerm._xterm.write("Compiled to WebAssembly with Emscripten. "
-                        + (this.emscrWasmTerm._worker ? "Running in WebWorker" : "Worker not available") + ".\r\n\r\n")
-                    this.emscrWasmTerm._xterm.write("Usage: openssl [command] [params]\r\n\r\n")
+                \x1b[37m\r`
+                this.wasmTerm.runCommandHeadless("openssl", ["version"], null, version => {
+                    // this.wasmTerm._xterm.write("\x1B[A")
+                    welcomemessage += "\r\n" + version.output + "\r"
+                    welcomemessage += "Compiled to WebAssembly with Emscripten. "
+                        + (this.wasmTerm._worker ? "Running in WebWorker" : "Worker not available") + ".\r\n\r\n"
+                        welcomemessage += "Usage: openssl [command] [params]\r\n\r\n"
 
                     // wait until output has been written and resolve
-                    this.emscrWasmTerm._waitForOutputPause().then(() => resolve())
+                    this.wasmTerm._waitForOutputPause().then(() => resolve(welcomemessage))
                 }).catch(e => console.error("error while printWelcomeMessage:", e))
             })
         }
 
         // init component values depending on openssl internals
-        this.emscrWasmTerm.onActivated = async () => {
+        this.wasmTerm.onActivated = async () => {
 
             let curves = []
             let ciphers = []
             let hashes = []
 
             // 1) fetch elliptic curves list from openssl
-            const curvesList = await this.emscrWasmTerm.runCommandHeadless("openssl", ["ecparam", "-list_curves"])
+            const curvesList = await this.wasmTerm.runCommandHeadless("openssl", ["ecparam", "-list_curves"])
             curvesList.stdout.split("\n").forEach(row => {
 
                 let name, description
@@ -88,12 +88,12 @@ class CommandLine extends React.Component {
             })
 
             // 2) fetch encrypt decrypt ciphers list from openssl
-            ciphers = (await this.emscrWasmTerm.runCommandHeadless("openssl", ["enc", "-list"]))
+            ciphers = (await this.wasmTerm.runCommandHeadless("openssl", ["enc", "-list"]))
                 .stdout.split("\n").slice(1).map(x => x.split(" ").filter(y => y))
                 .reduce((a, b) => a.concat(b), []).map(x => x.substring(1))
 
             // 3) fetch hash functions list from openssl
-            hashes = (await this.emscrWasmTerm.runCommandHeadless("openssl", ["dgst", "-list"]))
+            hashes = (await this.wasmTerm.runCommandHeadless("openssl", ["dgst", "-list"]))
                 .stdout.split("\n").slice(1).map(x => x.split(" ").filter(y => y))
                 .reduce((a, b) => a.concat(b), []).map(x => x.substring(1))
 
@@ -117,7 +117,7 @@ class CommandLine extends React.Component {
 
                 <div style={{position: "relative", width: (this.state.fullscreen ? "calc(50vw - 2.5px)" : "")}}>
 
-                    <XTerm addons={[this.emscrWasmTerm]} options={{ fontSize: 15, fontFamily: "monospace" }} />
+                    <XTerm addons={[this.wasmTerm]} options={{ fontSize: 15, fontFamily: "monospace" }} />
 
                     { this.state.loading && <div className="loading">
                         <i className="fa fa-spin fa-circle-o-notch fa-3x mt-1 mb-3"></i>
@@ -146,20 +146,20 @@ class CommandLine extends React.Component {
 
         // resize on fullscreen mode change
         if(this.state.fullscreen != prevState.fullscreen)
-            this.emscrWasmTerm._xtermFitAddon.fit()
+            this.wasmTerm._xtermFitAddon.fit()
 
         return true // render anyway
     }
 
 
-    setLoading(value) { // string or boolean
-        if(value) this.setState({ loading: value })
-        else this.setState({ loading: false })
+    setLoading(value, callback) { // value is string or boolean
+        if(value) this.setState({ loading: value }, callback)
+        else this.setState({ loading: false }, callback)
     }
 
     setFiles(files) {
-        this.emscrWasmTerm._wasmFsFiles = files
-        this.setState(() => ({ files: this.emscrWasmTerm._wasmFsFiles }))
+        this.wasmTerm._wasmFsFiles = files
+        this.setState(() => ({ files: this.wasmTerm._wasmFsFiles }))
         // state is passed as a function to use latest reference to wasmFsFiles
     }
 
@@ -167,22 +167,31 @@ class CommandLine extends React.Component {
     async runCommandFromOpenSSLGUI(line) {
 
         // only run one command at a time
-        if(this.emscrWasmTerm._isRunningCommand) return
+        if(this.wasmTerm._isRunningCommand) return
 
         // show command on terminal
-        this.emscrWasmTerm._xterm.write(line + "\r\n")
+        this.wasmTerm._xterm.write(line + "\r\n")
 
         // abort current repl
-        this.emscrWasmTerm._xtermEcho.abortRead("Everything is fine, running command from GUI")
+        this.wasmTerm._xtermEcho.abortRead("Everything is fine, running command from GUI")
+
+        // add command to history
+        this.wasmTerm._xtermEcho.history.push(line)
+
+        // show loading animation
+        await this.wasmTerm.onBeforeCommandRun()
 
         // execute line of commands
-        await this.emscrWasmTerm.runLine(line)
+        await this.wasmTerm.runLine(line)
 
         // print newline after
-        this.emscrWasmTerm._xterm.write("\r\n\r\n")
+        this.wasmTerm._xterm.write("\r\n")
+
+        // hide loading animation
+        await this.wasmTerm.onCommandRunFinish()
 
         // restart repl
-        this.emscrWasmTerm.repl()
+        this.wasmTerm.repl()
 
     }
 
@@ -195,7 +204,7 @@ class CommandLine extends React.Component {
             const dx = e.clientX - x, dy = e.clientY - y
             const newLeftWidth = ((leftWidth + dx) * 100) / parentElem.getBoundingClientRect().width
             leftElem.style.width = newLeftWidth + "%"
-            this.emscrWasmTerm._xtermFitAddon.fit()
+            this.wasmTerm._xtermFitAddon.fit()
         }
         document.onmouseup = () => document.onmousemove = document.onmouseup = null
     }
