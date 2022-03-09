@@ -1,5 +1,8 @@
 import React from "react"
 
+import { Trans } from "react-i18next"
+import i18next from "../../translations"
+
 import Table from "react-bootstrap/Table"
 import ButtonGroup from "react-bootstrap/ButtonGroup"
 import Button from "react-bootstrap/Button"
@@ -17,17 +20,17 @@ class FilesTab extends React.Component {
                 <InputGroup.Prepend>
                     <InputGroup.Text><i className="fa fa-upload"></i></InputGroup.Text>
                 </InputGroup.Prepend>
-                <Form.File label="Select a file from your computer" custom />
+                <Form.File label={i18next.t("Select a file from your computer")} custom />
             </InputGroup>
         </Form>
 
         <Table responsive className="mt-4 border">
             <thead className="thead-light">
                 <tr>
-                    <th>Filename</th>
-                    <th>Last modified</th>
-                    <th>File size</th>
-                    <th>Actions</th>
+                    <th><Trans>Filename</Trans></th>
+                    <th><Trans>Last modified</Trans></th>
+                    <th><Trans>File size</Trans></th>
+                    <th><Trans>Actions</Trans></th>
                 </tr>
             </thead>
             <tbody>

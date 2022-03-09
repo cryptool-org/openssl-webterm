@@ -3,6 +3,9 @@ import { Button, Col, Form, Row } from "react-bootstrap"
 import CommandField from "../CommandField"
 import Helpers from "../Helpers"
 
+import { Trans } from "react-i18next"
+import i18next from "../../translations"
+
 class EncryptionTab extends React.Component {
 
     /**
@@ -18,7 +21,7 @@ class EncryptionTab extends React.Component {
             /* default values */
             mode: "encrypt",
             inputtype: "text",
-            inputtext: "Hello world",
+            inputtext: i18next.t("Hello world"),
             method: "cipher",
             cipher: "aes-256-cbc",
             passphrasetype: "text",
@@ -67,17 +70,17 @@ class EncryptionTab extends React.Component {
                 <Col xs={12} md="auto" className="d-flex flex-column mb-2 mb-md-0">
                     <Button variant="dark" size="sm" className="mb-4 mb-md-0"
                         onClick={() => this._resetFields()}>
-                            <i className="fa fa-undo"></i> Reset fields
+                            <i className="fa fa-undo"></i> <Trans>Reset fields</Trans>
                     </Button>
                 </Col>
                 <Col cs={12} md="auto">
                     <Form.Group>
-                        <Form.Label className="d-inline-block mr-3">Mode:</Form.Label>
+                        <Form.Label className="d-inline-block mr-3"><Trans>Mode</Trans>:</Form.Label>
                         <Form.Check custom inline type="radio" name="mode" value="encrypt"
-                            label="Encrypt" onChange={e => this.onChange(e)} id="encdec-mode-encrypt"
+                            label={i18next.t("Encrypt")} onChange={e => this.onChange(e)} id="encdec-mode-encrypt"
                             checked={this.state.mode == "encrypt"} />
                         <Form.Check custom inline type="radio" name="mode" value="decrypt"
-                            label="Decrypt" onChange={e => this.onChange(e)} id="encdec-mode-decrypt"
+                            label={i18next.t("Decrypt")} onChange={e => this.onChange(e)} id="encdec-mode-decrypt"
                             checked={this.state.mode == "decrypt"} />
                     </Form.Group>
                 </Col>
@@ -88,12 +91,12 @@ class EncryptionTab extends React.Component {
             <Form.Group>
 
                 <Form.Label>
-                    <span className="mr-3">Input:</span>
+                    <span className="mr-3"><Trans>Input</Trans>:</span>
                     <Form.Check custom inline type="radio" name="inputtype" value="text"
                         label="Text" onChange={e => this.onChange(e)} id="encdec-inputtype-text"
                         checked={this.state.inputtype == "text"} />
                     <Form.Check custom inline type="radio" name="inputtype" value="file"
-                        label="File" onChange={e => this.onChange(e)} id="encdec-inputtype-file"
+                        label={i18next.t("File")} onChange={e => this.onChange(e)} id="encdec-inputtype-file"
                         checked={this.state.inputtype == "file"} />
                 </Form.Label>
 
@@ -105,7 +108,7 @@ class EncryptionTab extends React.Component {
                 {this.state.inputtype == "file" &&
                 <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
                     isInvalid={this._isInvalid(whatsValid.inputfile)} isValid={whatsValid.inputfile}>
-                        <option key={0} value="">Select file</option>
+                        <option key={0} value="">{i18next.t("Select file")}</option>
                         {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                 </Form.Control>}
 
@@ -116,9 +119,9 @@ class EncryptionTab extends React.Component {
                     <Form.Group>
 
                         <Form.Label>
-                            <span className="mr-3">Method:</span>
+                            <span className="mr-3"><Trans>Method</Trans>:</span>
                             <Form.Check custom inline type="radio" name="method" value="cipher"
-                                label="Cipher" onChange={e => this.onChange(e)} id="encdec-method-cipher"
+                                label={i18next.t("Cipher")} onChange={e => this.onChange(e)} id="encdec-method-cipher"
                                 checked={this.state.method == "cipher"} />
                             <Form.Check custom inline type="radio" name="method" value="key"
                                 label={((this.state.mode == "encrypt") ? "Public" : "Private") + " Key"} onChange={e => this.onChange(e)} id="encdec-method-key"
@@ -134,7 +137,7 @@ class EncryptionTab extends React.Component {
                         {this.state.method == "key" &&
                         <Form.Control as="select" value={this.state.key} name="key" onChange={e => this.onChange(e)}
                             isInvalid={this._isInvalid(whatsValid.key)} isValid={whatsValid.key}>
-                                <option key={0} value="">Select file</option>
+                                <option key={0} value="">{i18next.t("Select file")}</option>
                                 {keyfiles.map(keyfile => <option key={keyfile} value={keyfile}>{keyfile}</option>)}
                         </Form.Control>}
 
@@ -146,19 +149,19 @@ class EncryptionTab extends React.Component {
                         <Form.Label className={"d-block " + ((this.state.method == "key" && this.state.mode == "encrypt")
                             || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted) ? "text-muted" : "")}>
 
-                            <span className="mr-3">{this.state.method == "cipher" ? "Cipher " : ( this.state.mode == "decrypt" ? "Private Key " : "" )}Passphrase:</span>
+                            <span className="mr-3">{i18next.t(this.state.method == "cipher" ? "Cipher Passphrase" : ( this.state.mode == "decrypt" ? "Private Key Passphrase" : "" ))}:</span>
                             <Form.Check custom inline type="radio" name="passphrasetype" value="text"
                                 label="Text" onChange={e => this.onChange(e)} id="encdec-passphrasetype-text"
                                 disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}
                                 checked={this.state.passphrasetype == "text"} />
                             <Form.Check custom inline type="radio" name="passphrasetype" value="file"
-                                label="File" onChange={e => this.onChange(e)} id="encdec-passphrasetype-file"
+                                label={i18next.t("File")} onChange={e => this.onChange(e)} id="encdec-passphrasetype-file"
                                 disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}
                                 checked={this.state.passphrasetype == "file"} />
                         </Form.Label>
 
                         {this.state.passphrasetype == "text" &&
-                        <Form.Control type="password" placeholder={(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" ) :  "Enter passphrase .." )}
+                        <Form.Control type="password" placeholder={(this.state.method == "key" && this.state.mode == "encrypt") ? i18next.t("Public Keys are not encrypted") : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? i18next.t("Private Key not encrypted") : i18next.t("No Private Key selected") ) :  i18next.t("Enter passphrase ..") )}
                             value={(this.state.method == "key" && this.state.mode == "encrypt") ? "" : (this.state.passphrasetext || "")}
                             name="passphrasetext" onChange={e => this.onChange(e)} disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}
                             isInvalid={this._isInvalid(whatsValid.passphrasetext)} isValid={whatsValid.passphrasetext} />}
@@ -168,7 +171,7 @@ class EncryptionTab extends React.Component {
                             name="passphrasefile" onChange={e => this.onChange(e)}
                             isInvalid={this._isInvalid(whatsValid.passphrasefile)} isValid={whatsValid.passphrasefile}
                             disabled={(this.state.method == "key" && this.state.mode == "encrypt") || (this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted)}>
-                                <option key={0} value="">{(this.state.method == "key" && this.state.mode == "encrypt") ? "Public Keys are not encrypted" : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" ) : "Select file" )}</option>
+                                <option key={0} value="">{(this.state.method == "key" && this.state.mode == "encrypt") ? i18next.t("Public Keys are not encrypted") : ( this.state.method == "key" && this.state.mode == "decrypt" && !this.isPrivateKeyEncrypted ? ( this.state.key?.length > 0 ? i18next.t("Private Key not encrypted") : i18next.t("No Private Key selected") ) : i18next.t("Select file") )}</option>
                                 {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                         </Form.Control>}
 
@@ -181,7 +184,7 @@ class EncryptionTab extends React.Component {
                     <Form.Group>
                         <Form.Label>
                             <Form.Check custom inline type="checkbox" name="useoutputfile" id="encdec-useoutputfile"
-                                label="Output to file" value={(this.state.useoutputfile == "true" ? "false" : "true")}
+                                label={i18next.t("Output to file")} value={(this.state.useoutputfile == "true" ? "false" : "true")}
                                 onChange={e => this.onChange(e)} checked={this.state.useoutputfile == "true"} />
                         </Form.Label>
                         <Form.Control type="text" value={this.state.outputfile} name="outputfile"
@@ -191,7 +194,8 @@ class EncryptionTab extends React.Component {
                 </Col>
                 <Col>
                     <Form.Label className={"d-block " + (this.state.method == "key" ? "text-muted" : "")}>
-                        Options:</Form.Label>
+                        <Trans>Options</Trans>:
+                    </Form.Label>
                     <Form.Check custom inline type="checkbox" name="pbkdf2" id="encdec-pbkdf2"
                         label="PBKDF2" value={(this.state.pbkdf2 == "true" ? "false" : "true")}
                         onChange={e => this.onChange(e)} checked={(this.state.method == "key") ? false : this.state.pbkdf2 == "true"}
@@ -272,7 +276,7 @@ class EncryptionTab extends React.Component {
 
     _buildCommand(whatsValid = {}) {
 
-        if(Object.values(whatsValid).includes(false)) return "Please fill out the form completely"
+        if(Object.values(whatsValid).includes(false)) return i18next.t("Please fill in all fields")
 
         let command = "openssl"
 

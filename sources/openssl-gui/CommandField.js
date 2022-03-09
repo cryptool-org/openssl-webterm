@@ -1,4 +1,5 @@
 import React from "react"
+import { Trans } from "react-i18next"
 
 import Button from "react-bootstrap/Button"
 import FormControl from "react-bootstrap/FormControl"
@@ -11,12 +12,12 @@ class CommandField extends React.Component {
 
             <InputGroup>
                 <InputGroup.Prepend>
-                    <InputGroup.Text>Command:</InputGroup.Text>
+                    <InputGroup.Text><Trans>Command</Trans>:</InputGroup.Text>
                 </InputGroup.Prepend>
                 <FormControl value={this.props.command} disabled style={{fontFamily: "monospace"}} />
                 <InputGroup.Append>
                     <Button onClick={() => this.onClickRunButton()} disabled={!this.props.enableRun}>
-                        <i className="fa fa-play"></i> Run
+                        <i className="fa fa-play"></i> <Trans>Run</Trans>
                     </Button>
                 </InputGroup.Append>
             </InputGroup>

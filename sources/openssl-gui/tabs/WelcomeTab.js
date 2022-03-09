@@ -1,11 +1,10 @@
 import React from "react"
+import { Trans } from "react-i18next"
 
 class WelcomeTabContent extends React.Component {
 
     render() {
-        return <>
-            Welcome to OpenSSL in your browser! The upper terminal runs OpenSSL compiled to WebAssembly. You can also use the graphical user interface (GUI) to build and run commands. Have fun :)
-        </>
+        return <Trans>Welcome to OpenSSL in your browser!</Trans>
     }
 
 }

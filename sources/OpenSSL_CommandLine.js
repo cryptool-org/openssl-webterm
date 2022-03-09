@@ -1,5 +1,8 @@
 import React from "react"
 
+import { Trans } from "react-i18next"
+import i18next from "./translations"
+
 import { XTerm } from "xterm-for-react"
 import WasmWebTerm from "wasm-webterm"
 
@@ -21,7 +24,7 @@ class CommandLine extends React.Component {
         // register api handlers for addon interaction
         this.wasmTerm.onFileSystemUpdate = files => this.setFiles(files)
         this.wasmTerm.onBeforeCommandRun = () => { if(!this.wasmTerm._worker) return new Promise(resolve => // using promise + timeout
-            { this.setLoading("executing command", () => setTimeout(() => resolve(), 20)) }) } // to show animation before gui freezes ^^
+            { this.setLoading(i18next.t("executing command"), () => setTimeout(() => resolve(), 20)) }) } // to show animation before gui freezes ^^
         this.wasmTerm.onCommandRunFinish = () => { if(!this.wasmTerm._worker) this.setLoading(false) }
 
         this.state = {
@@ -48,13 +51,14 @@ class CommandLine extends React.Component {
                 this.wasmTerm.runCommandHeadless("openssl", ["version"], null, version => {
                     // this.wasmTerm._xterm.write("\x1B[A")
                     welcomemessage += "\r\n" + version.output + "\r"
-                    welcomemessage += "Compiled to WebAssembly with Emscripten. "
-                        + (this.wasmTerm._worker ? "Running in WebWorker" : "Worker not available") + ".\r\n\r\n"
-                        welcomemessage += "Usage: openssl [command] [params]\r\n\r\n"
+                    welcomemessage += i18next.t("Compiled to WebAssembly with Emscripten") + ". "
+                        + (this.wasmTerm._worker ? i18next.t("Running in WebWorker")
+                        : i18next.t("Worker not available")) + ".\r\n\r\n"
+                    welcomemessage += i18next.t("Usage: openssl [command] [params]") + "\r\n\r\n"
 
                     // wait until output has been written and resolve
                     this.wasmTerm._waitForOutputPause().then(() => resolve(welcomemessage))
-                }).catch(e => console.error("error while printWelcomeMessage:", e))
+                }).catch(e => console.error(i18next.t("error while") + " printWelcomeMessage:", e))
             })
         }
 
@@ -134,9 +138,17 @@ class CommandLine extends React.Component {
                     curvesList={this.state.openSSL.curvesList} hashfunList={this.state.openSSL.hashfunList} />
 
                 {!this.state.fullscreen && <div className="text-center">
-                <Button variant="dark" onClick={() => this.enterFullscreen()}>
-                    <i className="fa fa-arrows-alt" /> &nbsp;Enter Fullscreen
-                </Button></div>}
+
+                    <Button variant="dark" onClick={() => this.enterFullscreen()}>
+                        <i className="fa fa-arrows-alt" /> &nbsp;<Trans>Enter Fullscreen</Trans>
+                    </Button>
+
+                    {typeof CTO_Globals == "undefined" &&
+                    <a className="btn btn-dark ml-2" href={"?lang=" + ((window.lang == "en") ? "de" : "en")}>
+                        <i className="fa fa-language" /> &nbsp;{(window.lang == "en") ? "Deutsch" : "English"}
+                    </a>}
+
+                </div>}
 
             </div>
         )

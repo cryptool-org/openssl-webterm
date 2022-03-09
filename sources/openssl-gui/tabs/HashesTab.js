@@ -2,6 +2,9 @@ import React from "react"
 import { Button, Col, Form, Row } from "react-bootstrap"
 import CommandField from "../CommandField"
 
+import { Trans } from "react-i18next"
+import i18next from "../../translations"
+
 class HashesTab extends React.Component {
 
     /**
@@ -16,7 +19,7 @@ class HashesTab extends React.Component {
 
             /* default values */
             inputtype: "text",
-            inputtext: "Hello world",
+            inputtext: i18next.t("Hello world"),
             hashfun: "sha256",
             outputfile: "hashed.data"
 
@@ -40,12 +43,12 @@ class HashesTab extends React.Component {
             <Form.Group>
 
                 <Form.Label>
-                    <span className="mr-3">Input:</span>
+                    <span className="mr-3"><Trans>Input</Trans>:</span>
                     <Form.Check custom inline type="radio" name="inputtype" value="text"
                         label="Text" onChange={e => this.onChange(e)} id="hashes-inputtype-text"
                         checked={this.state.inputtype == "text"} />
                     <Form.Check custom inline type="radio" name="inputtype" value="file"
-                        label="File" onChange={e => this.onChange(e)} id="hashes-inputtype-file"
+                        label={i18next.t("File")} onChange={e => this.onChange(e)} id="hashes-inputtype-file"
                         checked={this.state.inputtype == "file"} />
                 </Form.Label>
 
@@ -57,7 +60,7 @@ class HashesTab extends React.Component {
                 {this.state.inputtype == "file" &&
                 <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
                     isInvalid={this._isInvalid(whatsValid.inputfile)} isValid={whatsValid.inputfile}>
-                        <option key={0} value="">Select file</option>
+                        <option key={0} value="">{i18next.t("Select file")}</option>
                         {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                 </Form.Control>}
 
@@ -66,7 +69,7 @@ class HashesTab extends React.Component {
             <Row>
                 <Col>
                     <Form.Group>
-                        <Form.Label>Hash function</Form.Label>
+                        <Form.Label><Trans>Hash function</Trans></Form.Label>
                         <Form.Control as="select" value={this.state.hashfun} name="hashfun" onChange={e => this.onChange(e)}
                             isInvalid={this._isInvalid(whatsValid.hashfun)} isValid={whatsValid.hashfun}>
                                 {this.props.hashfunList.map(hashfun => <option key={hashfun} value={hashfun}>{hashfun}</option>)}
@@ -77,7 +80,7 @@ class HashesTab extends React.Component {
                     <Form.Group>
                         <Form.Label>
                             <Form.Check custom inline type="checkbox" name="useoutputfile" id="hashes-useoutputfile"
-                                label="Output to file" value={(this.state.useoutputfile == "true" ? "false" : "true")}
+                                label={i18next.t("Output to file")} value={(this.state.useoutputfile == "true" ? "false" : "true")}
                                 onChange={e => this.onChange(e)} checked={this.state.useoutputfile == "true"} />
                         </Form.Label>
                         <Form.Control type="text" value={this.state.outputfile} name="outputfile"
@@ -127,7 +130,7 @@ class HashesTab extends React.Component {
 
     _buildCommand(whatsValid = {}) {
 
-        if(Object.values(whatsValid).includes(false)) return "Please fill out the form completely"
+        if(Object.values(whatsValid).includes(false)) return i18next.t("Please fill in all fields")
 
         let command = "openssl dgst"
 

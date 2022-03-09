@@ -1,4 +1,5 @@
 import React from "react"
+import { Trans } from "react-i18next"
 
 import Badge from "react-bootstrap/Badge"
 import Card from "react-bootstrap/Card"
@@ -65,29 +66,29 @@ class OpenSSLGUI extends React.Component {
                     <Card.Header>
                         <Nav className="flex-column flex-md-row" variant="pills">
                             <Nav.Item>
-                                <Nav.Link eventKey="welcome">Welcome</Nav.Link>
+                                <Nav.Link eventKey="welcome"><Trans>Welcome</Trans></Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="encryption">Encrypt &amp; Decrypt</Nav.Link>
+                                <Nav.Link eventKey="encryption"><Trans>Encrypt &amp; Decrypt</Trans></Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="genkeys">Generate Keys</Nav.Link>
+                                <Nav.Link eventKey="genkeys"><Trans>Generate Keys</Trans></Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="signverify">Sign &amp; Verify</Nav.Link>
+                                <Nav.Link eventKey="signverify"><Trans>Sign &amp; Verify</Trans></Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="hashes">Hashes</Nav.Link>
+                                <Nav.Link eventKey="hashes"><Trans>Hashes</Trans></Nav.Link>
                             </Nav.Item>
                             <Nav.Item>
-                                <Nav.Link eventKey="files">Files
-                                    {this.state.filesdirty && <Badge variant="dark" className="ml-2">New</Badge>}
+                                <Nav.Link eventKey="files"><Trans>Files</Trans>
+                                    {this.state.filesdirty && <Badge variant="dark" className="ml-2"><Trans>New</Trans></Badge>}
                                 </Nav.Link>
                             </Nav.Item>
                             {this.props.fullscreen &&
                             <Nav.Item>
                                 <Nav.Link className="text-danger" onClick={this.props.exitFullscreen}>
-                                    Exit Fullscreen
+                                    <Trans>Exit Fullscreen</Trans>
                                 </Nav.Link>
                             </Nav.Item>}
                         </Nav>
