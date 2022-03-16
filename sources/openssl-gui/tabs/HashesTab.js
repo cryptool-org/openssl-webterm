@@ -1,16 +1,17 @@
 import React from "react"
-import { Button, Col, Form, Row } from "react-bootstrap"
-import CommandField from "../CommandField"
 
 import { Trans } from "react-i18next"
 import i18next from "../../translations"
 
+import Col from "react-bootstrap/Col"
+import Form from "react-bootstrap/Form"
+import Row from "react-bootstrap/Row"
+
+import CommandField from "../CommandField"
+
 class HashesTab extends React.Component {
 
-    /**
-     * should get props:
-     * files, hashfunList, runCommand
-     */
+    // should get props: files, hashfunList, runCommand
 
     constructor(props) {
         super(props)
@@ -27,9 +28,6 @@ class HashesTab extends React.Component {
 
         // save initial state for reset (copy - no reference)
         this._initialState = JSON.parse(JSON.stringify(this.state))
-
-        window.hashes = this // todo: debug
-
     }
 
     render() {
@@ -67,7 +65,7 @@ class HashesTab extends React.Component {
             </Form.Group>
 
             <Row>
-                <Col>
+                <Col xs={12} md={6}>
                     <Form.Group>
                         <Form.Label><Trans>Hash function</Trans></Form.Label>
                         <Form.Control as="select" value={this.state.hashfun} name="hashfun" onChange={e => this.onChange(e)}
@@ -76,7 +74,7 @@ class HashesTab extends React.Component {
                         </Form.Control>
                     </Form.Group>
                 </Col>
-                <Col>
+                <Col xs={12} md={6}>
                     <Form.Group>
                         <Form.Label>
                             <Form.Check custom inline type="checkbox" name="useoutputfile" id="hashes-useoutputfile"

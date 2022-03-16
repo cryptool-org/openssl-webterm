@@ -1,12 +1,20 @@
 import React from "react"
-import { Button, Card, Col, Form, Row } from "react-bootstrap"
-import CommandField from "../CommandField"
-import Helpers from "../Helpers"
 
 import { Trans } from "react-i18next"
 import i18next from "../../translations"
 
+import Button from "react-bootstrap/Button"
+import Card from "react-bootstrap/Card"
+import Col from "react-bootstrap/Col"
+import Form from "react-bootstrap/Form"
+import Row from "react-bootstrap/Row"
+
+import CommandField from "../CommandField"
+import Helpers from "../Helpers"
+
 class SignVerifyTab extends React.Component {
+
+    // should get props: files, runCommand
 
     constructor(props) {
         super(props)
@@ -31,9 +39,6 @@ class SignVerifyTab extends React.Component {
 
         // save initial state for reset (copy - no reference)
         this._initialState = JSON.parse(JSON.stringify(this.state))
-
-        window.sig = this // todo: debug
-
     }
 
     render() {
@@ -83,7 +88,7 @@ class SignVerifyTab extends React.Component {
 
             <Card>
                 <Card.Header className={"d-flex align-items-center justify-content-between"}>
-                    <b>1) <Trans>Sign with Private Key</Trans></b>
+                    <b>1) <Trans>Sign with private key</Trans></b>
                     <Button variant="dark" size="sm" onClick={() => this._resetSigningFields()}>
                         <i className="fa fa-undo"></i> <Trans>Reset fields</Trans>
                     </Button>
@@ -120,9 +125,9 @@ class SignVerifyTab extends React.Component {
 
                         <Row>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Group>
-                                    <Form.Label>Private Key</Form.Label>
+                                    <Form.Label><Trans>Private key</Trans></Form.Label>
                                     <Form.Control required as="select" value={this.state.signingFields.privkey}
                                         name="privkey" onChange={e => this._onSigningFieldChange(e)}
                                         isValid={whatsValidSign.privkey} isInvalid={this._isInvalid(whatsValidSign.privkey)}>
@@ -132,11 +137,11 @@ class SignVerifyTab extends React.Component {
                                 </Form.Group>
                             </Col>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Group>
 
                                     <Form.Label className="d-block">
-                                        <span className={"mr-3 " + (!this.isPrivateKeyEncrypted ? "text-muted" : "")}>Private Key Passphrase:</span>
+                                        <span className={"mr-3 " + (!this.isPrivateKeyEncrypted ? "text-muted" : "")}>Passphrase:</span>
                                         <Form.Check custom inline type="radio" name="passphrasetype" value="text"
                                             label="Text" onChange={e => this._onSigningFieldChange(e)} id="signing-passphrasetype-text"
                                             disabled={!this.isPrivateKeyEncrypted} checked={this.state.signingFields.passphrasetype == "text"} />
@@ -146,7 +151,7 @@ class SignVerifyTab extends React.Component {
                                     </Form.Label>
 
                                     {this.state.signingFields.passphrasetype == "text" &&
-                                    <Form.Control type="password" placeholder={i18next.t(this.isPrivateKeyEncrypted ? "Enter passphrase .." : ( this.state.signingFields.privkey?.length > 0 ? "Private Key not encrypted" : "No Private Key selected" ))}
+                                    <Form.Control type="password" placeholder={i18next.t(this.isPrivateKeyEncrypted ? "Enter passphrase .." : ( this.state.signingFields.privkey?.length > 0 ? "Private key not encrypted" : "No private key selected" ))}
                                         name="passphrasetext" value={(this.isPrivateKeyEncrypted) ? (this.state.signingFields.passphrasetext || "") : ""}
                                         onChange={e => this._onSigningFieldChange(e)} disabled={!this.isPrivateKeyEncrypted}
                                         isInvalid={this._isInvalid(whatsValidSign.passphrasetext)} isValid={whatsValidSign.passphrasetext} />}
@@ -155,7 +160,7 @@ class SignVerifyTab extends React.Component {
                                     <Form.Control as="select" value={(this.isPrivateKeyEncrypted) ? this.state.signingFields.passphrasefile : ""}
                                         name="passphrasefile" onChange={e => this._onSigningFieldChange(e)} disabled={!this.isPrivateKeyEncrypted}
                                         isInvalid={this._isInvalid(whatsValidSign.passphrasefile)} isValid={whatsValidSign.passphrasefile} >
-                                            <option key={0} value="">{i18next.t((this.isPrivateKeyEncrypted) ? "Select file" : "Private Key not encrypted")}</option>
+                                            <option key={0} value="">{i18next.t((this.isPrivateKeyEncrypted) ? "Select file" : "Private key not encrypted")}</option>
                                             {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
                                     </Form.Control>}
 
@@ -165,11 +170,11 @@ class SignVerifyTab extends React.Component {
                         </Row>
                         <Row>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Group>
                                     <Form.Label>
                                         <Form.Check custom inline type="checkbox" name="useoutputfile" id="signing-useoutputfile"
-                                            label={i18next.t("Output signature to file")} value={(this.state.signingFields.useoutputfile == "true" ? "false" : "true")}
+                                            label={i18next.t("Output to file")} value={(this.state.signingFields.useoutputfile == "true" ? "false" : "true")}
                                             onChange={e => this._onSigningFieldChange(e)} checked={this.state.signingFields.useoutputfile == "true"} />
                                     </Form.Label>
                                     <Form.Control type="text" value={this.state.signingFields.outputfile || ""} name="outputfile"
@@ -178,7 +183,7 @@ class SignVerifyTab extends React.Component {
                                 </Form.Group>
                             </Col>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Label className="d-block"><Trans>Options</Trans>:</Form.Label>
                                 <Form.Check custom inline type="checkbox" name="base64" id="signing-base64" disabled={true}
                                     label="Base64 (todo)" value={(this.state.signingFields.base64 == "true" ? "false" : "true")}
@@ -198,7 +203,7 @@ class SignVerifyTab extends React.Component {
 
             <Card className="mt-4">
                 <Card.Header className={"d-flex align-items-center justify-content-between"}>
-                    <b>2) <Trans>Verify with Public Key</Trans></b>
+                    <b>2) <Trans>Verify with public key</Trans></b>
                     <Button variant="dark" size="sm" onClick={() => this._resetVerifyFields()}>
                         <i className="fa fa-undo"></i> <Trans>Reset fields</Trans>
                     </Button>
@@ -236,9 +241,9 @@ class SignVerifyTab extends React.Component {
 
                         <Row>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Group>
-                                    <Form.Label><Trans>Public Key</Trans></Form.Label>
+                                    <Form.Label><Trans>Public key</Trans></Form.Label>
                                     <Form.Control required as="select" value={this.state.verifyFields.pubkey}
                                         name="pubkey" onChange={e => this._onVerifyFieldChange(e)}
                                         isValid={whatsValidVery.pubkey} isInvalid={this._isInvalid(whatsValidVery.pubkey)}>
@@ -248,7 +253,7 @@ class SignVerifyTab extends React.Component {
                                 </Form.Group>
                             </Col>
 
-                            <Col>
+                            <Col xs={12} md={6}>
                                 <Form.Group>
                                     <Form.Label><Trans>Signature file</Trans></Form.Label>
                                     <Form.Control required as="select" value={this.state.verifyFields.sigfile || ""}

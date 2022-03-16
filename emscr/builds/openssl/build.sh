@@ -26,7 +26,7 @@ LDFLAGS="\
   -s INVOKE_RUN=0\
   -s EXIT_RUNTIME=1\
   -s EXPORT_ES6=0\
-  -s EXPORT_NAME='EmscrJsRE_openssl'\
+  -s EXPORT_NAME='EmscrJSR_openssl'\
   -s USE_ES6_IMPORT_META=0\
   -s ALLOW_MEMORY_GROWTH=1\
   --embed-file usr/local/ssl/openssl.cnf"
@@ -57,9 +57,9 @@ mv apps/openssl apps/openssl.js
 
 
 # import wasm build
-cp apps/openssl.js ../../../emscr/binaries/openssl.js || exit 1
-cp apps/openssl.wasm ../../../emscr/binaries/openssl.wasm || exit 1
-sed -i '1s;^;\/* eslint-disable *\/;' ../../../emscr/binaries/openssl.js
+cp apps/openssl.js ../../../binary/openssl.js || exit 1
+cp apps/openssl.wasm ../../../binary/openssl.wasm || exit 1
+sed -i '1s;^;\/* eslint-disable *\/;' ../../../binary/openssl.js
 
 # clean up directory
 cd .. && rm -rf ${OPENSSL_DIR} ${OPENSSL_VERSION}.tar.gz

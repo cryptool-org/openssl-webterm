@@ -18,13 +18,14 @@ class CommandLine extends React.Component {
 
         window.commandLine = this // todo: debug
 
-        // init wasm xterm addon
+        // init wasm xterm addon (try cto url first)
+        const baseUrl = window.CTO_Globals?.pluginRoot || "./"
         this.wasmTerm = new WasmWebTerm(baseUrl + "bin")
 
         // register api handlers for addon interaction
         this.wasmTerm.onFileSystemUpdate = files => this.setFiles(files)
-        this.wasmTerm.onBeforeCommandRun = () => { if(!this.wasmTerm._worker) return new Promise(resolve => // using promise + timeout
-            { this.setLoading(i18next.t("executing command"), () => setTimeout(() => resolve(), 20)) }) } // to show animation before gui freezes ^^
+        this.wasmTerm.onBeforeCommandRun = () => { if(!this.wasmTerm._worker) return new Promise(resolve => // using promise + timeout to show
+            { this.setLoading(i18next.t("executing command"), () => setTimeout(() => resolve(), 20)) }) } // the animation before gui freezes ^^
         this.wasmTerm.onCommandRunFinish = () => { if(!this.wasmTerm._worker) this.setLoading(false) }
 
         this.state = {
@@ -39,8 +40,9 @@ class CommandLine extends React.Component {
         }
 
         // set custom openssl welcome message
-        this.wasmTerm._printWelcomeMessage = () => {
+        this.wasmTerm.printWelcomeMessage = () => {
             return new Promise(resolve => {
+
                 let welcomemessage = `\x1b[1;32m
  _ _ _     _      _____             _____ _____ __    \r
 | | | |___| |_   |     |___ ___ ___|   __|   __|  |   \r
@@ -48,16 +50,17 @@ class CommandLine extends React.Component {
 |_____|___|___|  |_____|  _|___|_|_|_____|_____|_____|\r
                        |_|                            \r
                 \x1b[37m\r`
-                this.wasmTerm.runCommandHeadless("openssl", ["version"], null, version => {
-                    // this.wasmTerm._xterm.write("\x1B[A")
+
+                this.wasmTerm.runWasmCommandHeadless("openssl", ["version"], null, version => {
+
                     welcomemessage += "\r\n" + version.output + "\r"
                     welcomemessage += i18next.t("Compiled to WebAssembly with Emscripten") + ". "
                         + (this.wasmTerm._worker ? i18next.t("Running in WebWorker")
                         : i18next.t("Worker not available")) + ".\r\n\r\n"
                     welcomemessage += i18next.t("Usage: openssl [command] [params]") + "\r\n\r\n"
 
-                    // wait until output has been written and resolve
-                    this.wasmTerm._waitForOutputPause().then(() => resolve(welcomemessage))
+                    resolve(welcomemessage) // continue execution flow
+
                 }).catch(e => console.error(i18next.t("error while") + " printWelcomeMessage:", e))
             })
         }
@@ -70,7 +73,7 @@ class CommandLine extends React.Component {
             let hashes = []
 
             // 1) fetch elliptic curves list from openssl
-            const curvesList = await this.wasmTerm.runCommandHeadless("openssl", ["ecparam", "-list_curves"])
+            const curvesList = await this.wasmTerm.runWasmCommandHeadless("openssl", ["ecparam", "-list_curves"])
             curvesList.stdout.split("\n").forEach(row => {
 
                 let name, description
@@ -92,12 +95,12 @@ class CommandLine extends React.Component {
             })
 
             // 2) fetch encrypt decrypt ciphers list from openssl
-            ciphers = (await this.wasmTerm.runCommandHeadless("openssl", ["enc", "-list"]))
+            ciphers = (await this.wasmTerm.runWasmCommandHeadless("openssl", ["enc", "-list"]))
                 .stdout.split("\n").slice(1).map(x => x.split(" ").filter(y => y))
                 .reduce((a, b) => a.concat(b), []).map(x => x.substring(1))
 
             // 3) fetch hash functions list from openssl
-            hashes = (await this.wasmTerm.runCommandHeadless("openssl", ["dgst", "-list"]))
+            hashes = (await this.wasmTerm.runWasmCommandHeadless("openssl", ["dgst", "-list"]))
                 .stdout.split("\n").slice(1).map(x => x.split(" ").filter(y => y))
                 .reduce((a, b) => a.concat(b), []).map(x => x.substring(1))
 
@@ -140,7 +143,7 @@ class CommandLine extends React.Component {
                 {!this.state.fullscreen && <div className="text-center">
 
                     <Button variant="dark" onClick={() => this.enterFullscreen()}>
-                        <i className="fa fa-arrows-alt" /> &nbsp;<Trans>Enter Fullscreen</Trans>
+                        <i className="fa fa-arrows-alt" /> &nbsp;<Trans>Enter split screen</Trans>
                     </Button>
 
                     {typeof CTO_Globals == "undefined" &&

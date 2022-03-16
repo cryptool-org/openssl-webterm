@@ -15,7 +15,6 @@
 
 .osslcmdline.fullscreen > div {
     resize: horizontal;
-    overflow: auto; /* todo: remove */
 }
 
 .osslcmdline .fullscreenresizer {
@@ -53,6 +52,10 @@
     user-select: none;
 }
 
+.osslcmdline table {
+    white-space: nowrap;
+}
+
 
 /* GuiControls.css */
 
@@ -62,8 +65,10 @@
     flex: 1;
 }
 
-.osslcmdline.fullscreen .osslgui > .card-body {
-    overflow-y: scroll;
+@media(min-width: 768px) {
+    .osslcmdline.fullscreen .osslgui > .card-body {
+        overflow-y: scroll;
+    }
 }
 
 .osslcmdline .osslgui .table td,
@@ -88,9 +93,15 @@
 
 body.development {
     background: #222 !important;
+    overflow-y: scroll;
 }
 
 body.development .osslcmdline.abovebelow {
     max-width: 1000px;
     margin: 2rem auto;
+}
+
+select.form-control.is-valid, .was-validated select.form-control:valid,
+select.form-control.is-invalid, .was-validated select.form-control:invalid {
+    background-position: right calc(.5em + .5rem) center;
 }

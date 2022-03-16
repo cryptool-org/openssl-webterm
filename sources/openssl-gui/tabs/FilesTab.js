@@ -11,6 +11,8 @@ import InputGroup from "react-bootstrap/InputGroup"
 
 class FilesTab extends React.Component {
 
+    // should get props: files, setFiles
+
     render() {
 
         return <>

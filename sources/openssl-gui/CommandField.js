@@ -14,7 +14,8 @@ class CommandField extends React.Component {
                 <InputGroup.Prepend>
                     <InputGroup.Text><Trans>Command</Trans>:</InputGroup.Text>
                 </InputGroup.Prepend>
-                <FormControl value={this.props.command} disabled style={{fontFamily: "monospace"}} />
+                <FormControl value={this.props.command} disabled
+                    style={{fontFamily: "monospace", height: "calc(1.5rem + .75rem + 2px)"}} />
                 <InputGroup.Append>
                     <Button onClick={() => this.onClickRunButton()} disabled={!this.props.enableRun}>
                         <i className="fa fa-play"></i> <Trans>Run</Trans>

@@ -88,7 +88,7 @@ class OpenSSLGUI extends React.Component {
                             {this.props.fullscreen &&
                             <Nav.Item>
                                 <Nav.Link className="text-danger" onClick={this.props.exitFullscreen}>
-                                    <Trans>Exit Fullscreen</Trans>
+                                    <Trans>Exit</Trans>
                                 </Nav.Link>
                             </Nav.Item>}
                         </Nav>
