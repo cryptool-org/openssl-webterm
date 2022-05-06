@@ -1,10 +1,10 @@
-import React from "react"
-import ReactDOM from "react-dom"
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-import "./sources/translations"
-import CommandLine from "./sources/OpenSSL_CommandLine"
+import './sources/translations';
+import CommandLine from './sources/OpenSSL_CommandLine';
 
-import "./static/style.css"
+import './static/style.css';
 
 // initialize command line component
-ReactDOM.render(<CommandLine />, document.getElementById("commandline"))
+ReactDOM.render(<CommandLine />, document.getElementById('commandline'));

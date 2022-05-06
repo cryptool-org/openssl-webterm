@@ -1,165 +1,219 @@
-import React from "react"
+import React from 'react';
 
-import { Trans } from "react-i18next"
-import i18next from "../../translations"
+import { Trans } from 'react-i18next';
+import i18next from '../../translations';
 
-import Col from "react-bootstrap/Col"
-import Form from "react-bootstrap/Form"
-import Row from "react-bootstrap/Row"
+import Col from 'react-bootstrap/Col';
+import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
 
-import CommandField from "../CommandField"
+import CommandField from '../CommandField';
 
 class HashesTab extends React.Component {
+  // should get props: files, hashfunList, runCommand
 
-    // should get props: files, hashfunList, runCommand
+  constructor(props) {
+    super(props);
 
-    constructor(props) {
-        super(props)
+    this.state = {
+      /* default values */
+      inputtype: 'text',
+      inputtext: i18next.t('Hello world'),
+      hashfun: 'sha256',
+      outputfile: 'hashed.data',
+    };
 
-        this.state = {
+    // save initial state for reset (copy - no reference)
+    this._initialState = JSON.parse(JSON.stringify(this.state));
+  }
 
-            /* default values */
-            inputtype: "text",
-            inputtext: i18next.t("Hello world"),
-            hashfun: "sha256",
-            outputfile: "hashed.data"
+  render() {
+    // validate fields and build command
+    const whatsValid = this._validateFields();
+    const command = this._buildCommand(whatsValid);
 
-        }
+    return (
+      <Form onSubmit={(e) => e.preventDefault()}>
+        <Form.Group>
+          <Form.Label>
+            <span className="mr-3">
+              <Trans>Input</Trans>:
+            </span>
+            <Form.Check
+              custom
+              inline
+              type="radio"
+              name="inputtype"
+              value="text"
+              label="Text"
+              onChange={(e) => this.onChange(e)}
+              id="hashes-inputtype-text"
+              checked={this.state.inputtype == 'text'}
+            />
+            <Form.Check
+              custom
+              inline
+              type="radio"
+              name="inputtype"
+              value="file"
+              label={i18next.t('File')}
+              onChange={(e) => this.onChange(e)}
+              id="hashes-inputtype-file"
+              checked={this.state.inputtype == 'file'}
+            />
+          </Form.Label>
 
-        // save initial state for reset (copy - no reference)
-        this._initialState = JSON.parse(JSON.stringify(this.state))
-    }
+          {this.state.inputtype == 'text' && (
+            <Form.Control
+              as="textarea"
+              name="inputtext"
+              value={this.state.inputtext}
+              onChange={(e) => this.onChange(e)}
+              isValid={whatsValid.inputtext}
+              isInvalid={this._isInvalid(whatsValid.inputtext)}
+              rows={3}
+            />
+          )}
 
-    render() {
+          {this.state.inputtype == 'file' && (
+            <Form.Control
+              as="select"
+              value={this.state.inputfile}
+              name="inputfile"
+              onChange={(e) => this.onChange(e)}
+              isInvalid={this._isInvalid(whatsValid.inputfile)}
+              isValid={whatsValid.inputfile}
+            >
+              <option key={0} value="">
+                {i18next.t('Select file')}
+              </option>
+              {this.props.files.map((file) => (
+                <option key={file.name} value={file.name}>
+                  {file.name}
+                </option>
+              ))}
+            </Form.Control>
+          )}
+        </Form.Group>
 
-        // validate fields and build command
-        const whatsValid = this._validateFields()
-        const command = this._buildCommand(whatsValid)
-
-        return <Form onSubmit={e => e.preventDefault()}>
-
+        <Row>
+          <Col xs={12} md={6}>
             <Form.Group>
-
-                <Form.Label>
-                    <span className="mr-3"><Trans>Input</Trans>:</span>
-                    <Form.Check custom inline type="radio" name="inputtype" value="text"
-                        label="Text" onChange={e => this.onChange(e)} id="hashes-inputtype-text"
-                        checked={this.state.inputtype == "text"} />
-                    <Form.Check custom inline type="radio" name="inputtype" value="file"
-                        label={i18next.t("File")} onChange={e => this.onChange(e)} id="hashes-inputtype-file"
-                        checked={this.state.inputtype == "file"} />
-                </Form.Label>
-
-                {this.state.inputtype == "text" &&
-                <Form.Control as="textarea" name="inputtext" value={this.state.inputtext}
-                    onChange={e => this.onChange(e)} isValid={whatsValid.inputtext}
-                    isInvalid={this._isInvalid(whatsValid.inputtext)} rows={3} />}
-
-                {this.state.inputtype == "file" &&
-                <Form.Control as="select" value={this.state.inputfile} name="inputfile" onChange={e => this.onChange(e)}
-                    isInvalid={this._isInvalid(whatsValid.inputfile)} isValid={whatsValid.inputfile}>
-                        <option key={0} value="">{i18next.t("Select file")}</option>
-                        {this.props.files.map(file => <option key={file.name} value={file.name}>{file.name}</option>)}
-                </Form.Control>}
-
+              <Form.Label>
+                <Trans>Hash function</Trans>
+              </Form.Label>
+              <Form.Control
+                as="select"
+                value={this.state.hashfun}
+                name="hashfun"
+                onChange={(e) => this.onChange(e)}
+                isInvalid={this._isInvalid(whatsValid.hashfun)}
+                isValid={whatsValid.hashfun}
+              >
+                {this.props.hashfunList.map((hashfun) => (
+                  <option key={hashfun} value={hashfun}>
+                    {hashfun}
+                  </option>
+                ))}
+              </Form.Control>
             </Form.Group>
+          </Col>
+          <Col xs={12} md={6}>
+            <Form.Group>
+              <Form.Label>
+                <Form.Check
+                  custom
+                  inline
+                  type="checkbox"
+                  name="useoutputfile"
+                  id="hashes-useoutputfile"
+                  label={i18next.t('Output to file')}
+                  value={this.state.useoutputfile == 'true' ? 'false' : 'true'}
+                  onChange={(e) => this.onChange(e)}
+                  checked={this.state.useoutputfile == 'true'}
+                />
+              </Form.Label>
+              <Form.Control
+                type="text"
+                value={this.state.outputfile}
+                name="outputfile"
+                onChange={(e) => this.onChange(e)}
+                disabled={this.state.useoutputfile != 'true'}
+                isInvalid={this._isInvalid(whatsValid.outputfile)}
+                isValid={whatsValid.outputfile}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-            <Row>
-                <Col xs={12} md={6}>
-                    <Form.Group>
-                        <Form.Label><Trans>Hash function</Trans></Form.Label>
-                        <Form.Control as="select" value={this.state.hashfun} name="hashfun" onChange={e => this.onChange(e)}
-                            isInvalid={this._isInvalid(whatsValid.hashfun)} isValid={whatsValid.hashfun}>
-                                {this.props.hashfunList.map(hashfun => <option key={hashfun} value={hashfun}>{hashfun}</option>)}
-                        </Form.Control>
-                    </Form.Group>
-                </Col>
-                <Col xs={12} md={6}>
-                    <Form.Group>
-                        <Form.Label>
-                            <Form.Check custom inline type="checkbox" name="useoutputfile" id="hashes-useoutputfile"
-                                label={i18next.t("Output to file")} value={(this.state.useoutputfile == "true" ? "false" : "true")}
-                                onChange={e => this.onChange(e)} checked={this.state.useoutputfile == "true"} />
-                        </Form.Label>
-                        <Form.Control type="text" value={this.state.outputfile} name="outputfile"
-                            onChange={e => this.onChange(e)} disabled={this.state.useoutputfile != "true"}
-                            isInvalid={this._isInvalid(whatsValid.outputfile)} isValid={whatsValid.outputfile} />
-                    </Form.Group>
-                </Col>
-            </Row>
+        <hr style={{ marginTop: '0.5rem', marginBottom: '1.5rem' }} />
+        <CommandField
+          command={command}
+          runCommand={this.props.runCommand}
+          enableRun={!Object.values(whatsValid).includes(false)}
+        />
+      </Form>
+    );
+  }
 
-            <hr style={{ marginTop: "0.5rem", marginBottom: "1.5rem" }} />
-            <CommandField command={command} runCommand={this.props.runCommand}
-                enableRun={!Object.values(whatsValid).includes(false)} />
+  onChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
+  }
 
-        </Form>
-    }
+  _validateFields() {
+    let whatsValid = {};
 
+    // check if input text is valid
+    if (this.state.inputtype == 'text') {
+      whatsValid.inputtext = !!this.state.inputtext;
+    } else whatsValid.inputtext = undefined;
 
-    onChange(e) {
-        this.setState({ [e.target.name]: e.target.value })
-    }
+    // check if input file is valid
+    if (this.state.inputtype == 'file') {
+      whatsValid.inputfile = !!this.state.inputfile;
+    } else whatsValid.inputfile = undefined;
 
-    _validateFields() {
+    // check if hash fun was selected
+    whatsValid.hashfun = !!this.state.hashfun;
 
-        let whatsValid = {}
+    // check if output file is valid
+    if (this.state.useoutputfile == 'true') {
+      whatsValid.outputfile = !!(this.state.outputfile || '').trim();
+    } else whatsValid.outputfile = undefined;
 
-        // check if input text is valid
-        if(this.state.inputtype == "text") {
-            whatsValid.inputtext = !(!this.state.inputtext)
-        } else whatsValid.inputtext = undefined
+    return whatsValid;
+  }
 
-        // check if input file is valid
-        if(this.state.inputtype == "file") {
-            whatsValid.inputfile = !(!this.state.inputfile)
-        } else whatsValid.inputfile = undefined
+  _buildCommand(whatsValid = {}) {
+    if (Object.values(whatsValid).includes(false)) return i18next.t('Please fill in all fields');
 
-        // check if hash fun was selected
-        whatsValid.hashfun = !(!this.state.hashfun)
+    let command = 'openssl dgst';
 
-        // check if output file is valid
-        if(this.state.useoutputfile == "true") {
-            whatsValid.outputfile = !(!(this.state.outputfile || "").trim())
-        } else whatsValid.outputfile = undefined
+    command += ' -' + this.state.hashfun;
 
-        return whatsValid
+    if (this.state.useoutputfile == 'true') command += ' -out ' + this.state.outputfile;
 
-    }
+    if (this.state.inputtype == 'text') command = 'echo ' + this.state.inputtext + ' | ' + command;
 
-    _buildCommand(whatsValid = {}) {
+    if (this.state.inputtype == 'file') command += ' ' + this.state.inputfile;
 
-        if(Object.values(whatsValid).includes(false)) return i18next.t("Please fill in all fields")
+    return command;
+  }
 
-        let command = "openssl dgst"
+  _resetFields() {
+    // overwrite current state with initial state (including undefined)
+    this.setState((prevState) =>
+      Object.fromEntries(
+        Object.entries(prevState).map(([key, value]) => [key, this._initialState[key]])
+      )
+    );
+  }
 
-        command += " -" + this.state.hashfun
-
-        if(this.state.useoutputfile == "true")
-            command += " -out " + this.state.outputfile
-
-        if(this.state.inputtype == "text")
-            command = "echo " + this.state.inputtext + " | " + command
-
-        if(this.state.inputtype == "file")
-            command += " " + this.state.inputfile
-
-        return command
-
-    }
-
-
-    _resetFields() {
-        // overwrite current state with initial state (including undefined)
-        this.setState(prevState => Object.fromEntries(Object.entries(prevState)
-            .map(([key, value]) => [key, this._initialState[key]])))
-    }
-
-    _isInvalid(value) {
-        // make undefined not mean false
-        if(value == undefined) return undefined
-        else return !value
-    }
-
+  _isInvalid(value) {
+    // make undefined not mean false
+    if (value == undefined) return undefined;
+    else return !value;
+  }
 }
 
-export default HashesTab
+export default HashesTab;

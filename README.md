@@ -8,7 +8,6 @@ We then built a graphical user interface (GUI) on top of that, so it's easy for 
 
 ![image](https://user-images.githubusercontent.com/9321076/157410455-686ce0de-335f-4335-a639-07b6963e4589.png)
 
-
 ## Installation
 
 First, [install Node.js and npm](https://nodejs.org). Then clone this project and install its dependencies:
@@ -27,7 +26,6 @@ $ npm run serve
 
 You can now view the OpenSSL Webterm at https://localhost:4200.
 
-
 ## Internal workings
 
 The React GUI just builds commands (as strings). These are then called upon the terminal, which is an instance of [wasm-webterm](https://github.com/cryptool-org/wasm-webterm). If your browser supports WebWorkers (including SharedArrayBuffers and Atomics), a new Worker thread is spawned and the WebAssembly binary ([`openssl.wasm`](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/binary/openssl.wasm)) is ran there. Otherwise, it is executed on the main browser thread using a fallback (which can freeze the tab).
@@ -37,7 +35,6 @@ The WebAssembly binary is executed using the (auto generated) Emscripten JS runt
 If the binary asks for input (reads from `/dev/stdin`), the thread will be paused until the user entered something. If the binary prints to `/dev/stdout` or `/dev/stderr`, it will be shown on the [xterm.js](https://github.com/xtermjs/xterm.js) web terminal.
 
 After each command, the files in the memory filesystem are gathered and passed to the React GUI.
-
 
 ## Compiling OpenSSL
 
@@ -50,7 +47,6 @@ $ npm run build:openssl
 This will call the script in [`emscr/builds/openssl/build.sh`](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/builds/openssl/build.sh). It fetches the OpenSSL sources as a `.tar.gz` archive from https://www.openssl.org/source and extracts it. It then compiles them with Emscripten by calling `emconfigure` and `emmake` (both with specific flags).
 
 The created files `openssl.wasm` and `openssl.js` are then copied into `emscr/binary`, where the webpack server will deliver them from.
-
 
 ## Contributing
 
