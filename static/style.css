@@ -1,107 +1,110 @@
-
 /* CommandLine.css */
 
 .osslcmdline.fullscreen {
-    display: flex;
-    align-items: stretch;
-    overflow-y: hidden;
+  display: flex;
+  align-items: stretch;
+  overflow-y: hidden;
 
-    position: fixed;
-    top: 0; bottom: 0;
-    left: 0; right: 0;
-    z-index: 9999999999999999;
-    background: #222;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999999999999999;
+  background: #222;
 }
 
 .osslcmdline.fullscreen > div {
-    resize: horizontal;
+  resize: horizontal;
 }
 
 .osslcmdline .fullscreenresizer {
-    width: 5px; max-width: 5px;
-    cursor: col-resize;
-    user-select: none;
+  width: 5px;
+  max-width: 5px;
+  cursor: col-resize;
+  user-select: none;
 }
 
 .osslcmdline .xterm.terminal {
-    padding: 1rem;
+  padding: 1rem;
 }
 
 .osslcmdline.abovebelow .xterm.terminal {
-    height: 500px;
+  height: 500px;
 }
 
 .osslcmdline.fullscreen .xterm.terminal {
-    height: 100vh;
+  height: 100vh;
 }
 
 .osslcmdline .loading {
-    position: absolute;
-    left: 0; right: 0;
-    top: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.75);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: #fff;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: #fff;
 }
 
 .osslcmdline .custom-radio,
 .osslcmdline .custom-checkbox {
-    user-select: none;
+  user-select: none;
 }
 
 .osslcmdline table {
-    white-space: nowrap;
+  white-space: nowrap;
 }
-
 
 /* GuiControls.css */
 
 .osslcmdline.fullscreen .osslgui {
-    margin: 0 !important;
-    border-radius: 0;
-    flex: 1;
+  margin: 0 !important;
+  border-radius: 0;
+  flex: 1;
 }
 
-@media(min-width: 768px) {
-    .osslcmdline.fullscreen .osslgui > .card-body {
-        overflow-y: scroll;
-    }
+@media (min-width: 768px) {
+  .osslcmdline.fullscreen .osslgui > .card-body {
+    overflow-y: scroll;
+  }
 }
 
 .osslcmdline .osslgui .table td,
 .osslcmdline .osslgui .table th {
-    vertical-align: middle !important;
+  vertical-align: middle !important;
 }
-
 
 /* fix behaviour in CTO */
 
 .osslcmdline .card-header button {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
 }
 
 .osslcmdline .card-header button:after {
-    content: "" !important;
+  content: '' !important;
 }
-
 
 /* development environment */
 
 body.development {
-    background: #222 !important;
-    overflow-y: scroll;
+  background: #222 !important;
+  overflow-y: scroll;
 }
 
 body.development .osslcmdline.abovebelow {
-    max-width: 1000px;
-    margin: 2rem auto;
+  max-width: 1000px;
+  margin: 2rem auto;
 }
 
-select.form-control.is-valid, .was-validated select.form-control:valid,
-select.form-control.is-invalid, .was-validated select.form-control:invalid {
-    background-position: right calc(.5em + .5rem) center;
+select.form-control.is-valid,
+.was-validated select.form-control:valid,
+select.form-control.is-invalid,
+.was-validated select.form-control:invalid {
+  background-position: right calc(0.5em + 0.5rem) center;
 }
