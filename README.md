@@ -51,6 +51,21 @@ This will call the script in [`emscr/builds/openssl/build.sh`](https://github.co
 
 The created files `openssl.wasm` and `openssl.js` are then copied into `emscr/binary`, where the webpack server will deliver them from.
 
+## Docker Integration
+
+The source code contains `Dockerfile` which allows you to create a [`docker`](https://www.docker.com/) image. To create a new one use the following command. Note that built app inside the image will be hosted on the [`nginx`](https://github.com/nginx/nginx) http server.
+
+```shell
+$ docker build -t openssl-wt .
+```
+
+For create a docker container use the:
+
+```shell
+$ docker run --rm -it -p 10080:80 -d openssl-wt
+```
+
+After that you can view the OpenSSL Webterm at http://localhost:10080
 
 ## Contributing
 
