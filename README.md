@@ -30,9 +30,9 @@ You can now view the OpenSSL Webterm at https://localhost:4200.
 
 ## Internal workings
 
-The React GUI just builds commands (as strings). These are then called upon the terminal, which is an instance of [wasm-webterm](https://github.com/cryptool-org/wasm-webterm). If your browser supports WebWorkers (including SharedArrayBuffers and Atomics), a new Worker thread is spawned and the WebAssembly binary ([`openssl.wasm`](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/binary/openssl.wasm)) is ran there. Otherwise, it is executed on the main browser thread using a fallback (which can freeze the tab).
+The React GUI just builds commands (as strings). These are then called upon the terminal, which is an instance of [wasm-webterm](https://github.com/cryptool-org/wasm-webterm). If your browser supports WebWorkers (including SharedArrayBuffers and Atomics), a new Worker thread is spawned and the WebAssembly binary ([`openssl.wasm`](/emscr/binary/openssl.wasm)) is ran there. Otherwise, it is executed on the main browser thread using a fallback (which can freeze the tab).
 
-The WebAssembly binary is executed using the (auto generated) Emscripten JS runtime contained in [`openssl.js`](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/binary/openssl.js). It initializes a virtual memory filesystem and handles input/output calls.
+The WebAssembly binary is executed using the (auto generated) Emscripten JS runtime contained in [`openssl.js`](/emscr/binary/openssl.js). It initializes a virtual memory filesystem and handles input/output calls.
 
 If the binary asks for input (reads from `/dev/stdin`), the thread will be paused until the user entered something. If the binary prints to `/dev/stdout` or `/dev/stderr`, it will be shown on the [xterm.js](https://github.com/xtermjs/xterm.js) web terminal.
 
@@ -41,31 +41,39 @@ After each command, the files in the memory filesystem are gathered and passed t
 
 ## Compiling OpenSSL
 
-First, [install the Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html). You can then easily recompile the OpenSSL WebAssembly binary by calling the following command. Note that this is not neccessary, as [it's already compiled](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/binary).
+First, [install the Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html). You can then easily recompile the OpenSSL WebAssembly binary by calling the following command. Note that this is not neccessary, as [it's already compiled](/emscr/binary).
 
 ```shell
 $ npm run build:openssl
 ```
 
-This will call the script in [`emscr/builds/openssl/build.sh`](https://github.com/cryptool-org/openssl-webterm/blob/master/emscr/builds/openssl/build.sh). It fetches the OpenSSL sources as a `.tar.gz` archive from https://www.openssl.org/source and extracts it. It then compiles them with Emscripten by calling `emconfigure` and `emmake` (both with specific flags).
+This will call the script in [`emscr/builds/openssl/build.sh`](/emscr/builds/openssl/build.sh). It fetches the OpenSSL sources as a `.tar.gz` archive from https://www.openssl.org/source and extracts it. It then compiles them with Emscripten by calling `emconfigure` and `emmake` (both with specific flags).
 
 The created files `openssl.wasm` and `openssl.js` are then copied into `emscr/binary`, where the webpack server will deliver them from.
 
+
 ## Docker Integration
 
-The source code contains `Dockerfile` which allows you to create a [`docker`](https://www.docker.com/) image. To create a new one use the following command. Note that built app inside the image will be hosted on the [`nginx`](https://github.com/nginx/nginx) http server.
+The source code contains a [`Dockerfile`](/Dockerfile) which allows you to create ready-to-run [Docker](https://www.docker.com) images. These are comparable to snapshots in virtual machines.
+
+First, [install and start Docker](https://docs.docker.com/get-docker). Then create a Docker image:
 
 ```shell
-$ docker build -t openssl-wt .
+$ docker build -t openssl-webterm .
 ```
 
-For create a docker container use the:
+> This installs [Alpine Linux](https://www.alpinelinux.org) with Node.js (v16.3) and [nginx](https://github.com/nginx/nginx) into a virtual image, builds the OpenSSL Webterm sources, and copies the built files into nginx's web server directory.
+
+You can then instanciate this image into a Docker container:
 
 ```shell
-$ docker run --rm -it -p 10080:80 -d openssl-wt
+$ docker run --rm -it -p 4300:80 -d openssl-webterm
 ```
 
-After that you can view the OpenSSL Webterm at http://localhost:10080
+> This runs the nginx web server.
+
+You should now be able to view the OpenSSL Webterm at http://localhost:4300
+
 
 ## Contributing
 
