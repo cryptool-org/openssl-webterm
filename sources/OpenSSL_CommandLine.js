@@ -3,7 +3,7 @@ import React from "react"
 import { Trans } from "react-i18next"
 import i18next from "./translations"
 
-import { XTerm } from "xterm-for-react"
+import XTerm from "./xterm-for-react"
 import WasmWebTerm from "wasm-webterm"
 
 import OpenSSLGUI from "./openssl-gui/OpenSSL_GUI"
@@ -38,6 +38,11 @@ class CommandLine extends React.Component {
                 curvesList: [], cipherList: [], hashfunList: []
             }
         }
+
+        // implement echo with js
+        this.wasmTerm.registerJsCommand("echo", async function*(argv) {
+            for(const char of argv.join(" ")) yield char
+        })
 
         // set custom openssl welcome message
         this.wasmTerm.printWelcomeMessage = () => {
