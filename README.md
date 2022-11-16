@@ -41,18 +41,36 @@ After each command, the files in the memory filesystem are gathered and passed t
 
 ## Compiling OpenSSL
 
-First, [install the Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html). You can then easily recompile the OpenSSL WebAssembly binary by calling the following command. Note that this is not neccessary, as [it's already compiled](/emscr/binary).
+You can compile the OpenSSL WebAssembly binary by calling one the following commands. Note that this is not neccessary, as [it's already compiled](/emscr/binary).
+
+Both call the script in [`emscr/builds/openssl/build.sh`](/emscr/builds/openssl/build.sh). It fetches and extracts the OpenSSL sources as a `.tar.gz` archive from https://www.openssl.org/source. It then compiles them with Emscripten by calling `emconfigure` and `emmake` (both with specific flags).
+
+The created files `openssl.wasm` and `openssl.js` are then copied into `emscr/binary`, where the webpack server will deliver them from.
+
+### Option 1: Using Docker
+
+First, [install and start Docker](https://docs.docker.com/get-docker). Then run the following command:
+
+```shell
+$ npm run build:openssl:docker
+```
+
+This will fetch Emscripten's Docker image [`emscripten/emsdk`](https://hub.docker.com/r/emscripten/emsdk) and run the build script.
+
+> This option should work cross-platform.
+
+### Option 2: Manually (without Docker)
+
+First, [install the Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html). Then run the following command:
 
 ```shell
 $ npm run build:openssl
 ```
 
-This will call the script in [`emscr/builds/openssl/build.sh`](/emscr/builds/openssl/build.sh). It fetches the OpenSSL sources as a `.tar.gz` archive from https://www.openssl.org/source and extracts it. It then compiles them with Emscripten by calling `emconfigure` and `emmake` (both with specific flags).
-
-The created files `openssl.wasm` and `openssl.js` are then copied into `emscr/binary`, where the webpack server will deliver them from.
+> This option may only work using Linux. It failed for us on macOS and we therefore recommend [Option 1: Using Docker](#option-1-using-docker).
 
 
-## Docker Integration
+## Running this project with Docker
 
 The source code contains a [`Dockerfile`](/Dockerfile) which allows you to create ready-to-run [Docker](https://www.docker.com) images. These are comparable to snapshots in virtual machines.
 
@@ -77,7 +95,7 @@ You should now be able to view the OpenSSL Webterm at http://localhost:4300
 
 ## Contributing
 
-Any contributions are **greatly appreciated**. If you have a suggestion that would make this better, please open an issue or fork the repository and create a pull request.
+Any contributions are greatly appreciated. If you have a suggestion that would make this better, please open an issue or fork the repository and create a pull request.
 
 ## License
 
