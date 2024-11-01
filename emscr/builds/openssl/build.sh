@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPENSSL_VERSION="openssl-3.1.0"
+OPENSSL_VERSION="openssl-3.4.0"
 OPENSSL_DIR="src"
 
 if [ -d ${OPENSSL_DIR} ]; then
