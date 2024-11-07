@@ -8,7 +8,7 @@ if [ -d ${OPENSSL_DIR} ]; then
 fi
 
 if [ ! -f ${OPENSSL_VERSION}.tar.gz ]; then
-  curl -O https://www.openssl.org/source/${OPENSSL_VERSION}.tar.gz
+  curl -O https://www.openssl.org/source/${OPENSSL_VERSION}/${OPENSSL_VERSION}.tar.gz
 fi
 
 mkdir ${OPENSSL_DIR}
