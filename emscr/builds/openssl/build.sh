@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPENSSL_VERSION="openssl-3.1.0"
+OPENSSL_VERSION="openssl-3.4.0"
 OPENSSL_DIR="src"
 
 if [ -d ${OPENSSL_DIR} ]; then
@@ -8,7 +8,7 @@ if [ -d ${OPENSSL_DIR} ]; then
 fi
 
 if [ ! -f ${OPENSSL_VERSION}.tar.gz ]; then
-  curl -O https://www.openssl.org/source/${OPENSSL_VERSION}.tar.gz
+  curl -O https://www.openssl.org/source/${OPENSSL_VERSION}/${OPENSSL_VERSION}.tar.gz
 fi
 
 mkdir ${OPENSSL_DIR}
