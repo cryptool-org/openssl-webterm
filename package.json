@@ -6,7 +6,7 @@
     "serve": "webpack serve --mode development",
     "build": "rm -rf dist && webpack --mode production && rm -f dist/*.LICENSE.txt",
     "build:openssl": "cd emscr/builds/openssl && ./build.sh ${ARG}",
-    "build:openssl:docker": "docker run --rm -v $(pwd):$(pwd) -w $(pwd)/emscr/builds/openssl -u emscripten:emscripten --platform linux/amd64 emscripten/emsdk /bin/bash ./build.sh ${ARG}"
+    "build:openssl:docker": "docker run --rm -v $(pwd):$(pwd) -w $(pwd)/emscr/builds/openssl -u emscripten:emscripten --platform linux/amd64 emscripten/emsdk:4.0.12 /bin/bash ./build.sh ${ARG}"
   },
   "keywords": [
     "openssl",
