@@ -3,3 +3,5 @@ dist
 
 emscr/builds/**/src
 emscr/builds/**/*.tar.gz
+
+.DS_Store
