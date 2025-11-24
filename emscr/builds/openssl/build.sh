@@ -21,6 +21,10 @@ echo Extracting tar archive ${FILENAME} $'\n'
 tar xf ${FILENAME} --strip-components=1 --directory=${OPENSSL_DIR}
 cd ${OPENSSL_DIR} || exit 1
 
+echo Apply patches $'\n'
+patch -p1 -i ../speed_sched.patch
+echo ''
+
 echo Copying OpenSSL config $'\n'
 mkdir -p usr/local/ssl/
 cp ../openssl.cnf usr/local/ssl/openssl.cnf
@@ -48,7 +52,6 @@ export CXX=emcc
 echo Running Emscripten $'\n'
 
 emconfigure ./Configure \
-  no-hw \
   no-shared \
   no-asm \
   no-threads \
