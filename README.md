@@ -8,10 +8,9 @@ We then built a graphical user interface (GUI) on top of that, so it's easy for 
 
 ![image](https://user-images.githubusercontent.com/9321076/157410455-686ce0de-335f-4335-a639-07b6963e4589.png)
 
-
 ## Installation
 
-First, [install Node.js and npm](https://nodejs.org). Then clone this project and install its dependencies:
+First, [install Node.js and npm](https://nodejs.org). Node 18.12+ is required, and Node 18 LTS is the recommended baseline. Then clone this project and install its dependencies:
 
 ```shell
 $ git clone https://github.com/cryptool-org/openssl-webterm.git
@@ -27,7 +26,6 @@ $ npm run serve
 
 You can now view the OpenSSL Webterm at https://localhost:4200.
 
-
 ## Internal workings
 
 The React GUI just builds commands (as strings). These are then called upon the terminal, which is an instance of [wasm-webterm](https://github.com/cryptool-org/wasm-webterm). If your browser supports WebWorkers (including SharedArrayBuffers and Atomics), a new Worker thread is spawned and the WebAssembly binary ([`openssl.wasm`](/emscr/binary/openssl.wasm)) is ran there. Otherwise, it is executed on the main browser thread using a fallback (which can freeze the tab).
@@ -37,7 +35,6 @@ The WebAssembly binary is executed using the (auto generated) Emscripten JS runt
 If the binary asks for input (reads from `/dev/stdin`), the thread will be paused until the user entered something. If the binary prints to `/dev/stdout` or `/dev/stderr`, it will be shown on the [xterm.js](https://github.com/xtermjs/xterm.js) web terminal.
 
 After each command, the files in the memory filesystem are gathered and passed to the React GUI.
-
 
 ## Compiling OpenSSL
 
@@ -69,7 +66,6 @@ $ npm run build:openssl
 
 > This option may only work using Linux. It failed for us on macOS and we therefore recommend [Option 1: Using Docker](#option-1-using-docker).
 
-
 ## Running this project with Docker
 
 The source code contains a [`Dockerfile`](/Dockerfile) which allows you to create ready-to-run [Docker](https://www.docker.com) images. These are comparable to snapshots in virtual machines.
@@ -80,7 +76,7 @@ First, [install and start Docker](https://docs.docker.com/get-docker). Then crea
 $ docker build -t openssl-webterm .
 ```
 
-> This installs [Alpine Linux](https://www.alpinelinux.org) with Node.js (v16.3) and [nginx](https://github.com/nginx/nginx) into a virtual image, builds the OpenSSL Webterm sources, and copies the built files into nginx's web server directory.
+> This installs [Alpine Linux](https://www.alpinelinux.org) with Node.js 18 and [nginx](https://github.com/nginx/nginx) into a virtual image, builds the OpenSSL Webterm sources, and copies the built files into nginx's web server directory.
 
 You can then instanciate this image into a Docker container:
 
@@ -91,7 +87,6 @@ $ docker run --rm -it -p 4300:80 -d openssl-webterm
 > This runs the nginx web server.
 
 You should now be able to view the OpenSSL Webterm at http://localhost:4300
-
 
 ## Contributing
 
