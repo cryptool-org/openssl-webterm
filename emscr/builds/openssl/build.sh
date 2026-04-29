@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPENSSL_VERSION="openssl-3.6.1"
+OPENSSL_VERSION="openssl-4.0.0"
 
 FILENAME="$OPENSSL_VERSION.tar.gz"
 DOWNLOAD_PATH="https://github.com/openssl/openssl/releases/download/$OPENSSL_VERSION/$FILENAME"
